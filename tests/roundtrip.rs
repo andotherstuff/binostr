@@ -527,7 +527,7 @@ mod dannypack_roundtrip {
     fn roundtrip_edge_cases() {
         let events = generate_edge_case_events();
         for (i, event) in events.iter().enumerate() {
-            let serialized = dannypack::serialize(event);
+            let serialized = dannypack::serialize_to_vec(event);
             let deserialized = dannypack::deserialize(&serialized)
                 .unwrap_or_else(|e| panic!("Failed to deserialize edge case {}: {}", i, e));
             assert_eq!(event, &deserialized, "Edge case {} roundtrip failed", i);
@@ -543,7 +543,7 @@ mod dannypack_roundtrip {
         }
 
         for (i, event) in events.iter().enumerate() {
-            let serialized = dannypack::serialize(event);
+            let serialized = dannypack::serialize_to_vec(event);
             let deserialized = dannypack::deserialize(&serialized)
                 .unwrap_or_else(|e| panic!("Failed to deserialize real event {}: {}", i, e));
             assert_eq!(
@@ -626,7 +626,7 @@ mod cross_format {
             let proto_binary_bytes = proto::binary::serialize(original);
             let capnp_bytes = capnp::serialize_event(original);
             let capnp_packed_bytes = capnp::serialize_event_packed(original);
-            let dannypack_bytes = dannypack::serialize(original);
+            let dannypack_bytes = dannypack::serialize_to_vec(original);
             let notepack_bytes = notepack::serialize(original);
 
             // Deserialize each

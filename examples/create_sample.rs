@@ -4,7 +4,7 @@
 //! Default: 50000 events
 
 use binostr::proto_gen::nostr::ProtoEvent;
-use binostr::{EventLoader, NostrEvent, EXCLUDED_KINDS};
+use binostr::{EventLoader, EXCLUDED_KINDS};
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use prost::Message;

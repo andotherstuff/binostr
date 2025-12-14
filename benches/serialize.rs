@@ -51,7 +51,7 @@ fn bench_serialize_single(c: &mut Criterion) {
     });
 
     group.bench_function("dannypack", |b| {
-        b.iter(|| dannypack::serialize(black_box(event)))
+        b.iter(|| dannypack::serialize_to_vec(black_box(event)))
     });
 
     group.bench_function("notepack", |b| {
@@ -224,7 +224,7 @@ fn bench_serialize_throughput(c: &mut Criterion) {
     group.bench_function("dannypack", |b| {
         b.iter(|| {
             for event in &events {
-                black_box(dannypack::serialize(event));
+                black_box(dannypack::serialize_to_vec(event));
             }
         })
     });

@@ -25,7 +25,7 @@ fn bench_deserialize_single(c: &mut Criterion) {
     let proto_binary_data = proto::binary::serialize(event);
     let capnp_data = capnp::serialize_event(event);
     let capnp_packed_data = capnp::serialize_event_packed(event);
-    let dannypack_data = dannypack::serialize(event);
+    let dannypack_data = dannypack::serialize_to_vec(event);
     let notepack_data = notepack::serialize(event);
 
     let mut group = c.benchmark_group("deserialize_single");
@@ -189,7 +189,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
     let proto_binary_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
     let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
     let capnp_packed_data: Vec<_> = events.iter().map(capnp::serialize_event_packed).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize).collect();
+    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
     let notepack_data: Vec<_> = events.iter().map(notepack::serialize).collect();
 
     let event_count = events.len() as u64;
@@ -302,7 +302,7 @@ fn bench_deserialize_bytes_throughput(c: &mut Criterion) {
     let proto_binary_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
     let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
     let capnp_packed_data: Vec<_> = events.iter().map(capnp::serialize_event_packed).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize).collect();
+    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
     let notepack_data: Vec<_> = events.iter().map(notepack::serialize).collect();
 
     // Helper to run benchmark with format-specific byte throughput

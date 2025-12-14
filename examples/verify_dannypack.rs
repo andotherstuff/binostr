@@ -26,14 +26,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (i, event) in events.iter().enumerate() {
         // DannyPack individual roundtrip
-        let dp_bytes = dannypack::serialize(event);
+        let dp_bytes = dannypack::serialize_to_vec(event);
         match dannypack::deserialize(&dp_bytes) {
             Ok(back) if &back == event => dp_ok += 1,
             Ok(back) => {
                 dp_fail += 1;
                 if dp_fail <= 3 {
                     println!("❌ DannyPack mismatch at event {}", i);
-                    println!("   ID: {}", hex::encode(&event.id));
+                    println!("   ID: {}", hex::encode(event.id));
                     println!("   Content len: {} vs {}", event.content.len(), back.content.len());
                 }
             }
@@ -75,7 +75,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Write all events to files first
     println!("Writing events to files...");
-    
+
     let dp_batch = dannypack::serialize_batch(&events);
     let mut f = File::create("/tmp/dp_million.bin")?;
     f.write_all(&dp_batch)?;
@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut dp_check = 0u64;
     for iter in 0..ITERATIONS {
         for event in &events {
-            let bytes = dannypack::serialize(event);
+            let bytes = dannypack::serialize_to_vec(event);
             let back = dannypack::deserialize(&bytes).unwrap();
             dp_check = dp_check.wrapping_add(back.created_at as u64);
         }
@@ -177,7 +177,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Proto Binary: {:>10} bytes ({:.1}% of JSON)", pb_batch.len(), 100.0 * pb_batch.len() as f64 / json_batch.len() as f64);
     println!("  JSON:         {:>10} bytes", json_batch.len());
 
-    println!("\n🔥 DannyPack is {:.2}x FASTER than Proto Binary over {} million operations! 🔥", 
+    println!("\n🔥 DannyPack is {:.2}x FASTER than Proto Binary over {} million operations! 🔥",
              pb_time.as_nanos() as f64 / dp_time.as_nanos() as f64,
              dp_ops / 1_000_000);
 

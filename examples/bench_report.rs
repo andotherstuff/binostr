@@ -177,7 +177,7 @@ fn main() {
         "JSON",
         "json",
         &events,
-        |e| json::serialize(e),
+        json::serialize,
         |d| json::deserialize(d).unwrap(),
     ));
     println!("✓");
@@ -188,7 +188,7 @@ fn main() {
         "CBOR Schemaless",
         "cbor_schema",
         &events,
-        |e| cbor::schemaless::serialize(e),
+        cbor::schemaless::serialize,
         |d| cbor::schemaless::deserialize(d).unwrap(),
     ));
     println!("✓");
@@ -199,7 +199,7 @@ fn main() {
         "CBOR Packed",
         "cbor_packed",
         &events,
-        |e| cbor::packed::serialize(e),
+        cbor::packed::serialize,
         |d| cbor::packed::deserialize(d).unwrap(),
     ));
     println!("✓");
@@ -210,7 +210,7 @@ fn main() {
         "CBOR IntKey",
         "cbor_intkey",
         &events,
-        |e| cbor::intkey::serialize(e),
+        cbor::intkey::serialize,
         |d| cbor::intkey::deserialize(d).unwrap(),
     ));
     println!("✓");
@@ -221,7 +221,7 @@ fn main() {
         "Proto String",
         "proto_str",
         &events,
-        |e| proto::string::serialize(e),
+        proto::string::serialize,
         |d| proto::string::deserialize(d).unwrap(),
     ));
     println!("✓");
@@ -232,7 +232,7 @@ fn main() {
         "Proto Binary",
         "proto_bin",
         &events,
-        |e| proto::binary::serialize(e),
+        proto::binary::serialize,
         |d| proto::binary::deserialize(d).unwrap(),
     ));
     println!("✓");
@@ -243,7 +243,7 @@ fn main() {
         "Cap'n Proto",
         "capnp",
         &events,
-        |e| capnp::serialize_event(e),
+        capnp::serialize_event,
         |d| capnp::deserialize_event(d).unwrap(),
     ));
     println!("✓");
@@ -254,7 +254,7 @@ fn main() {
         "Cap'n Packed",
         "capnp_pk",
         &events,
-        |e| capnp::serialize_event_packed(e),
+        capnp::serialize_event_packed,
         |d| capnp::deserialize_event_packed(d).unwrap(),
     ));
     println!("✓");
@@ -280,7 +280,7 @@ fn main() {
         "Notepack",
         "notepack",
         &events,
-        |e| notepack::serialize(e),
+        notepack::serialize,
         |d| notepack::deserialize(d).unwrap(),
     ));
     println!("✓");

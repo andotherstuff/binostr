@@ -87,7 +87,7 @@ fn bench_read_kind(c: &mut Criterion) {
     let proto_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
     let cbor_data: Vec<_> = events.iter().map(cbor::packed::serialize).collect();
     let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize).collect();
+    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
 
     let mut group = c.benchmark_group("read_kind");
     group.throughput(Throughput::Elements(events.len() as u64));
@@ -157,7 +157,7 @@ fn bench_read_pubkey(c: &mut Criterion) {
     let proto_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
     let cbor_data: Vec<_> = events.iter().map(cbor::packed::serialize).collect();
     let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize).collect();
+    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
 
     let mut group = c.benchmark_group("read_pubkey");
     group.throughput(Throughput::Elements(events.len() as u64));
@@ -227,7 +227,7 @@ fn bench_read_kind_and_pubkey(c: &mut Criterion) {
     let proto_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
     let cbor_data: Vec<_> = events.iter().map(cbor::packed::serialize).collect();
     let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize).collect();
+    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
 
     let mut group = c.benchmark_group("read_kind_and_pubkey");
     group.throughput(Throughput::Elements(events.len() as u64));

@@ -6,7 +6,7 @@
 //! ```text
 //! [fixed: 138 bytes]
 //!   - id: 32 bytes
-//!   - pubkey: 32 bytes  
+//!   - pubkey: 32 bytes
 //!   - sig: 64 bytes
 //!   - created_at: 8 bytes (i64 LE)
 //!   - kind: 2 bytes (u16 LE)
@@ -280,6 +280,14 @@ pub fn serialize(event: &NostrEvent, buf: &mut Vec<u8>) {
         let written = ptr.offset_from(base) as usize;
         buf.set_len(original_len + written);
     }
+}
+
+/// Convenience wrapper that returns a new Vec instead of writing to a buffer
+#[inline]
+pub fn serialize_to_vec(event: &NostrEvent) -> Vec<u8> {
+    let mut buf = Vec::new();
+    serialize(event, &mut buf);
+    buf
 }
 
 #[inline(always)]

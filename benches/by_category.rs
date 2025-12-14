@@ -100,7 +100,7 @@ fn bench_size_category(c: &mut Criterion, category: SizeCategory, name: &str) {
     group.bench_function("serialize/dannypack", |b| {
         b.iter(|| {
             for event in &events {
-                black_box(dannypack::serialize(event));
+                black_box(dannypack::serialize_to_vec(event));
             }
         })
     });
@@ -118,7 +118,7 @@ fn bench_size_category(c: &mut Criterion, category: SizeCategory, name: &str) {
     let cbor_data: Vec<_> = events.iter().map(cbor::packed::serialize).collect();
     let proto_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
     let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize).collect();
+    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
     let notepack_data: Vec<_> = events.iter().map(notepack::serialize).collect();
 
     // Deserialize benchmarks
@@ -225,7 +225,7 @@ fn bench_tag_category(c: &mut Criterion, category: TagCategory, name: &str) {
     group.bench_function("serialize/dannypack", |b| {
         b.iter(|| {
             for event in &events {
-                black_box(dannypack::serialize(event));
+                black_box(dannypack::serialize_to_vec(event));
             }
         })
     });
@@ -243,7 +243,7 @@ fn bench_tag_category(c: &mut Criterion, category: TagCategory, name: &str) {
     let cbor_data: Vec<_> = events.iter().map(cbor::packed::serialize).collect();
     let proto_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
     let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize).collect();
+    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
     let notepack_data: Vec<_> = events.iter().map(notepack::serialize).collect();
 
     // Deserialize benchmarks
@@ -312,7 +312,7 @@ fn print_size_stats(events: &[NostrEvent], category: &str) {
     let cbor_total: usize = events.iter().map(|e| cbor::packed::serialize(e).len()).sum();
     let proto_total: usize = events.iter().map(|e| proto::binary::serialize(e).len()).sum();
     let capnp_total: usize = events.iter().map(|e| capnp::serialize_event(e).len()).sum();
-    let dannypack_total: usize = events.iter().map(|e| dannypack::serialize(e).len()).sum();
+    let dannypack_total: usize = events.iter().map(|e| dannypack::serialize_to_vec(e).len()).sum();
     let notepack_total: usize = events.iter().map(|e| notepack::serialize(e).len()).sum();
 
     println!("\n=== {} - {} events ===", category, n);
