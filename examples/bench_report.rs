@@ -265,7 +265,11 @@ fn main() {
         "DannyPack",
         "dannypack",
         &events,
-        |e| dannypack::serialize(e),
+        |e| {
+            let mut buf = Vec::new();
+            dannypack::serialize(e, &mut buf);
+            buf
+        },
         |d| dannypack::deserialize(d).unwrap(),
     ));
     println!("✓");
