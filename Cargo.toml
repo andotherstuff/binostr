@@ -26,12 +26,13 @@ flate2 = "1.0"
 zstd = "0.13"
 
 # Notepack
-notepack = "0.3"
+notepack = { path = "/Users/jeff/code/notepack" }
 
 # Utilities
 rand = "0.8"
 hex = "0.4"
 thiserror = "2.0"
+toml = "0.8"
 
 [build-dependencies]
 prost-build = "0.13"

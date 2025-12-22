@@ -102,7 +102,7 @@ fn size_analysis(c: &mut Criterion) {
 
         let mut sizes: Vec<(Format, usize)> = Vec::new();
 
-        for &format in Format::all() {
+        for format in Format::enabled() {
             let total: usize = kind_events
                 .iter()
                 .map(|e| binostr::stats::serialize(e, format).len())

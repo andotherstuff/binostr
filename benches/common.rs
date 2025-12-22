@@ -1,6 +1,7 @@
 //! Common utilities for benchmarks
 
-use binostr::{EventSampler, NostrEvent};
+use binostr::stats::Format;
+use binostr::{config, EventSampler, NostrEvent};
 use criterion::Criterion;
 use std::time::Duration;
 
@@ -62,6 +63,47 @@ pub fn auto_criterion() -> Criterion {
     } else {
         default_criterion()
     }
+}
+
+/// Check if a format is enabled in config (by short name like "json", "cbor_packed", etc.)
+#[allow(dead_code)]
+pub fn is_enabled(format_name: &str) -> bool {
+    config::is_format_enabled(format_name)
+}
+
+/// Get all enabled formats
+#[allow(dead_code)]
+pub fn enabled_formats() -> Vec<Format> {
+    Format::enabled()
+}
+
+/// Print which formats are enabled at benchmark start
+#[allow(dead_code)]
+pub fn print_enabled_formats() {
+    let enabled: Vec<_> = Format::enabled().iter().map(|f| f.name()).collect();
+    eprintln!("Enabled formats: {}", enabled.join(", "));
+}
+
+/// Macro to conditionally run a benchmark only if the format is enabled
+///
+/// Usage:
+/// ```ignore
+/// bench_if_enabled!(group, "json", |b| {
+///     b.iter(|| json::serialize(black_box(event)))
+/// });
+/// ```
+#[macro_export]
+macro_rules! bench_if_enabled {
+    ($group:expr, $format:expr, $bench:expr) => {
+        if common::is_enabled($format) {
+            $group.bench_function($format, $bench);
+        }
+    };
+    ($group:expr, $format:expr, $id:expr, $input:expr, $bench:expr) => {
+        if common::is_enabled($format) {
+            $group.bench_with_input($id, $input, $bench);
+        }
+    };
 }
 
 /// Default data directory

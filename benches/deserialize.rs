@@ -2,6 +2,7 @@
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 
+#[macro_use]
 mod common;
 
 use binostr::{capnp, cbor, dannypack, json, notepack, proto};
@@ -31,43 +32,43 @@ fn bench_deserialize_single(c: &mut Criterion) {
     let mut group = c.benchmark_group("deserialize_single");
     group.throughput(Throughput::Elements(1));
 
-    group.bench_function("json", |b| {
+    bench_if_enabled!(group, "json", |b| {
         b.iter(|| json::deserialize(black_box(&json_data)))
     });
 
-    group.bench_function("cbor_schemaless", |b| {
+    bench_if_enabled!(group, "cbor_schemaless", |b| {
         b.iter(|| cbor::schemaless::deserialize(black_box(&cbor_schemaless_data)))
     });
 
-    group.bench_function("cbor_packed", |b| {
+    bench_if_enabled!(group, "cbor_packed", |b| {
         b.iter(|| cbor::packed::deserialize(black_box(&cbor_packed_data)))
     });
 
-    group.bench_function("cbor_intkey", |b| {
+    bench_if_enabled!(group, "cbor_intkey", |b| {
         b.iter(|| cbor::intkey::deserialize(black_box(&cbor_intkey_data)))
     });
 
-    group.bench_function("proto_string", |b| {
+    bench_if_enabled!(group, "proto_string", |b| {
         b.iter(|| proto::string::deserialize(black_box(&proto_string_data)))
     });
 
-    group.bench_function("proto_binary", |b| {
+    bench_if_enabled!(group, "proto_binary", |b| {
         b.iter(|| proto::binary::deserialize(black_box(&proto_binary_data)))
     });
 
-    group.bench_function("capnp", |b| {
+    bench_if_enabled!(group, "capnp", |b| {
         b.iter(|| capnp::deserialize_event(black_box(&capnp_data)))
     });
 
-    group.bench_function("capnp_packed", |b| {
+    bench_if_enabled!(group, "capnp_packed", |b| {
         b.iter(|| capnp::deserialize_event_packed(black_box(&capnp_packed_data)))
     });
 
-    group.bench_function("dannypack", |b| {
+    bench_if_enabled!(group, "dannypack", |b| {
         b.iter(|| dannypack::deserialize(black_box(&dannypack_data)))
     });
 
-    group.bench_function("notepack", |b| {
+    bench_if_enabled!(group, "notepack", |b| {
         b.iter(|| notepack::deserialize(black_box(&notepack_data)))
     });
 
@@ -104,65 +105,85 @@ fn bench_deserialize_batch(c: &mut Criterion) {
 
         group.throughput(Throughput::Elements(batch_size as u64));
 
-        group.bench_with_input(
-            BenchmarkId::new("json", batch_size),
-            &json_data,
-            |b, data| b.iter(|| json::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("json") {
+            group.bench_with_input(
+                BenchmarkId::new("json", batch_size),
+                &json_data,
+                |b, data| b.iter(|| json::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("cbor_schemaless", batch_size),
-            &cbor_schemaless_data,
-            |b, data| b.iter(|| cbor::schemaless::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("cbor_schemaless") {
+            group.bench_with_input(
+                BenchmarkId::new("cbor_schemaless", batch_size),
+                &cbor_schemaless_data,
+                |b, data| b.iter(|| cbor::schemaless::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("cbor_packed", batch_size),
-            &cbor_packed_data,
-            |b, data| b.iter(|| cbor::packed::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("cbor_packed") {
+            group.bench_with_input(
+                BenchmarkId::new("cbor_packed", batch_size),
+                &cbor_packed_data,
+                |b, data| b.iter(|| cbor::packed::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("cbor_intkey", batch_size),
-            &cbor_intkey_data,
-            |b, data| b.iter(|| cbor::intkey::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("cbor_intkey") {
+            group.bench_with_input(
+                BenchmarkId::new("cbor_intkey", batch_size),
+                &cbor_intkey_data,
+                |b, data| b.iter(|| cbor::intkey::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("proto_string", batch_size),
-            &proto_string_data,
-            |b, data| b.iter(|| proto::string::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("proto_string") {
+            group.bench_with_input(
+                BenchmarkId::new("proto_string", batch_size),
+                &proto_string_data,
+                |b, data| b.iter(|| proto::string::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("proto_binary", batch_size),
-            &proto_binary_data,
-            |b, data| b.iter(|| proto::binary::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("proto_binary") {
+            group.bench_with_input(
+                BenchmarkId::new("proto_binary", batch_size),
+                &proto_binary_data,
+                |b, data| b.iter(|| proto::binary::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("capnp", batch_size),
-            &capnp_data,
-            |b, data| b.iter(|| capnp::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("capnp") {
+            group.bench_with_input(
+                BenchmarkId::new("capnp", batch_size),
+                &capnp_data,
+                |b, data| b.iter(|| capnp::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("capnp_packed", batch_size),
-            &capnp_packed_data,
-            |b, data| b.iter(|| capnp::deserialize_batch_packed(black_box(data))),
-        );
+        if common::is_enabled("capnp_packed") {
+            group.bench_with_input(
+                BenchmarkId::new("capnp_packed", batch_size),
+                &capnp_packed_data,
+                |b, data| b.iter(|| capnp::deserialize_batch_packed(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("dannypack", batch_size),
-            &dannypack_data,
-            |b, data| b.iter(|| dannypack::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("dannypack") {
+            group.bench_with_input(
+                BenchmarkId::new("dannypack", batch_size),
+                &dannypack_data,
+                |b, data| b.iter(|| dannypack::deserialize_batch(black_box(data))),
+            );
+        }
 
-        group.bench_with_input(
-            BenchmarkId::new("notepack", batch_size),
-            &notepack_data,
-            |b, data| b.iter(|| notepack::deserialize_batch(black_box(data))),
-        );
+        if common::is_enabled("notepack") {
+            group.bench_with_input(
+                BenchmarkId::new("notepack", batch_size),
+                &notepack_data,
+                |b, data| b.iter(|| notepack::deserialize_batch(black_box(data))),
+            );
+        }
     }
 
     group.finish();
@@ -198,7 +219,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
     let mut group = c.benchmark_group("deserialize_throughput");
     group.throughput(Throughput::Elements(event_count));
 
-    group.bench_function("json", |b| {
+    bench_if_enabled!(group, "json", |b| {
         b.iter(|| {
             for data in &json_data {
                 black_box(json::deserialize(data).unwrap());
@@ -206,7 +227,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("cbor_schemaless", |b| {
+    bench_if_enabled!(group, "cbor_schemaless", |b| {
         b.iter(|| {
             for data in &cbor_schemaless_data {
                 black_box(cbor::schemaless::deserialize(data).unwrap());
@@ -214,7 +235,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("cbor_packed", |b| {
+    bench_if_enabled!(group, "cbor_packed", |b| {
         b.iter(|| {
             for data in &cbor_packed_data {
                 black_box(cbor::packed::deserialize(data).unwrap());
@@ -222,7 +243,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("cbor_intkey", |b| {
+    bench_if_enabled!(group, "cbor_intkey", |b| {
         b.iter(|| {
             for data in &cbor_intkey_data {
                 black_box(cbor::intkey::deserialize(data).unwrap());
@@ -230,7 +251,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("proto_string", |b| {
+    bench_if_enabled!(group, "proto_string", |b| {
         b.iter(|| {
             for data in &proto_string_data {
                 black_box(proto::string::deserialize(data).unwrap());
@@ -238,7 +259,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("proto_binary", |b| {
+    bench_if_enabled!(group, "proto_binary", |b| {
         b.iter(|| {
             for data in &proto_binary_data {
                 black_box(proto::binary::deserialize(data).unwrap());
@@ -246,7 +267,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("capnp", |b| {
+    bench_if_enabled!(group, "capnp", |b| {
         b.iter(|| {
             for data in &capnp_data {
                 black_box(capnp::deserialize_event(data).unwrap());
@@ -254,7 +275,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("capnp_packed", |b| {
+    bench_if_enabled!(group, "capnp_packed", |b| {
         b.iter(|| {
             for data in &capnp_packed_data {
                 black_box(capnp::deserialize_event_packed(data).unwrap());
@@ -262,7 +283,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("dannypack", |b| {
+    bench_if_enabled!(group, "dannypack", |b| {
         b.iter(|| {
             for data in &dannypack_data {
                 black_box(dannypack::deserialize(data).unwrap());
@@ -270,7 +291,7 @@ fn bench_deserialize_throughput(c: &mut Criterion) {
         })
     });
 
-    group.bench_function("notepack", |b| {
+    bench_if_enabled!(group, "notepack", |b| {
         b.iter(|| {
             for data in &notepack_data {
                 black_box(notepack::deserialize(data).unwrap());
@@ -305,20 +326,22 @@ fn bench_deserialize_bytes_throughput(c: &mut Criterion) {
     let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
     let notepack_data: Vec<_> = events.iter().map(notepack::serialize).collect();
 
-    // Helper to run benchmark with format-specific byte throughput
+    // Helper to run benchmark with format-specific byte throughput (if enabled)
     macro_rules! bench_with_bytes {
         ($group:expr, $name:expr, $data:expr, $deserialize:expr) => {{
-            let total_bytes: usize = $data.iter().map(|d| d.len()).sum();
-            let mut group = c.benchmark_group(format!("deserialize_bytes/{}", $name));
-            group.throughput(Throughput::Bytes(total_bytes as u64));
-            group.bench_function($name, |b| {
-                b.iter(|| {
-                    for data in &$data {
-                        black_box($deserialize(data).unwrap());
-                    }
-                })
-            });
-            group.finish();
+            if common::is_enabled($name) {
+                let total_bytes: usize = $data.iter().map(|d| d.len()).sum();
+                let mut group = c.benchmark_group(format!("deserialize_bytes/{}", $name));
+                group.throughput(Throughput::Bytes(total_bytes as u64));
+                group.bench_function($name, |b| {
+                    b.iter(|| {
+                        for data in &$data {
+                            black_box($deserialize(data).unwrap());
+                        }
+                    })
+                });
+                group.finish();
+            }
         }};
     }
 

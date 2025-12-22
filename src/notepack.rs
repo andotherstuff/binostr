@@ -6,7 +6,7 @@
 //! See: <https://docs.rs/notepack>
 
 use crate::event::NostrEvent;
-use notepack::{NoteBuf, NoteParser, StringType};
+use notepack::{NoteBinary, NoteParser, StringType};
 
 /// Error type for notepack serialization/deserialization
 #[derive(Debug, thiserror::Error)]
@@ -24,23 +24,21 @@ pub enum NotepackError {
     InvalidFieldSize { expected: usize, actual: usize },
 }
 
-/// Convert NostrEvent to notepack NoteBuf
-fn to_notebuf(event: &NostrEvent) -> NoteBuf {
-    NoteBuf {
-        id: hex::encode(event.id),
-        pubkey: hex::encode(event.pubkey),
+/// Serialize a NostrEvent to notepack binary format
+///
+/// Uses `NoteBinary` for zero-allocation serialization - directly passes
+/// binary fields (id, pubkey, sig) without hex encoding/decoding overhead.
+pub fn serialize(event: &NostrEvent) -> Vec<u8> {
+    let note = NoteBinary {
+        id: &event.id,
+        pubkey: &event.pubkey,
+        sig: &event.sig,
         created_at: event.created_at as u64,
         kind: event.kind as u64,
-        tags: event.tags.clone(),
-        content: event.content.clone(),
-        sig: hex::encode(event.sig),
-    }
-}
-
-/// Serialize a NostrEvent to notepack binary format
-pub fn serialize(event: &NostrEvent) -> Vec<u8> {
-    let note = to_notebuf(event);
-    notepack::pack_note(&note).expect("notepack serialization should not fail")
+        tags: &event.tags,
+        content: &event.content,
+    };
+    note.pack()
 }
 
 /// Deserialize a NostrEvent from notepack binary format

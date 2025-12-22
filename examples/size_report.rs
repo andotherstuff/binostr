@@ -44,9 +44,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Analyzing {} events...", events.len());
     println!();
 
-    // Aggregate statistics
+    // Aggregate statistics (only enabled formats)
+    let enabled = Format::enabled();
     let mut totals: Vec<(Format, usize, usize, usize)> =
-        Format::all().iter().map(|&f| (f, 0, 0, 0)).collect();
+        enabled.iter().map(|&f| (f, 0, 0, 0)).collect();
 
     for event in &events {
         let stats = compute_size_stats(event);

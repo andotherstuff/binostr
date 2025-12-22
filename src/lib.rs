@@ -5,6 +5,7 @@
 
 pub mod capnp;
 pub mod cbor;
+pub mod config;
 pub mod dannypack;
 pub mod event;
 pub mod json;

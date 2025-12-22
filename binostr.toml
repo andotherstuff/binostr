@@ -1,0 +1,26 @@
+# Binostr Configuration
+#
+# Control which serialization formats are included in benchmarks and comparisons.
+# Set a format to `false` to exclude it from analysis (the code remains for
+# historical purposes, but it won't run in benchmarks or appear in reports).
+
+[formats]
+# JSON - baseline format, always included for comparison
+json = true
+
+# CBOR variants
+cbor_schemaless = false  # Basic CBOR with string keys
+cbor_packed = true       # CBOR with packed field indices
+cbor_intkey = false      # CBOR with integer keys
+
+# Protocol Buffers variants
+proto_string = false     # Protobuf with hex string fields
+proto_binary = true      # Protobuf with binary fields (recommended)
+
+# Cap'n Proto variants
+capnp = false            # Cap'n Proto standard
+capnp_packed = true     # Cap'n Proto packed encoding
+
+# Custom formats
+dannypack = false        # Custom compact format (experimental)
+notepack = true          # MessagePack-based Nostr format

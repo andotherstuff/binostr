@@ -8,6 +8,7 @@ use std::io::Write;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 
+use crate::config;
 use crate::event::{NostrEvent, SizeCategory, TagCategory};
 use crate::{capnp, cbor, dannypack, json, notepack, proto};
 
@@ -27,6 +28,7 @@ pub enum Format {
 }
 
 impl Format {
+    /// Returns all formats (regardless of config)
     pub fn all() -> &'static [Format] {
         &[
             Format::Json,
@@ -40,6 +42,36 @@ impl Format {
             Format::DannyPack,
             Format::Notepack,
         ]
+    }
+
+    /// Returns only formats that are enabled in binostr.toml config
+    pub fn enabled() -> Vec<Format> {
+        Self::all()
+            .iter()
+            .filter(|f| f.is_enabled())
+            .copied()
+            .collect()
+    }
+
+    /// Check if this format is enabled in config
+    pub fn is_enabled(&self) -> bool {
+        config::is_format_enabled(self.config_key())
+    }
+
+    /// Config key used in binostr.toml
+    pub fn config_key(&self) -> &'static str {
+        match self {
+            Format::Json => "json",
+            Format::CborSchemaless => "cbor_schemaless",
+            Format::CborPacked => "cbor_packed",
+            Format::CborIntKey => "cbor_intkey",
+            Format::ProtoString => "proto_string",
+            Format::ProtoBinary => "proto_binary",
+            Format::CapnProto => "capnp",
+            Format::CapnProtoPacked => "capnp_packed",
+            Format::DannyPack => "dannypack",
+            Format::Notepack => "notepack",
+        }
     }
 
     pub fn name(&self) -> &'static str {
@@ -128,8 +160,28 @@ impl SizeStats {
     }
 }
 
-/// Compute size statistics for an event across all formats
+/// Compute size statistics for an event across enabled formats
 pub fn compute_size_stats(event: &NostrEvent) -> Vec<SizeStats> {
+    Format::enabled()
+        .iter()
+        .map(|&format| {
+            let data = serialize(event, format);
+            let raw_bytes = data.len();
+            let gzip_bytes = gzip_size(&data);
+            let zstd_bytes = zstd_size(&data);
+
+            SizeStats {
+                format,
+                raw_bytes,
+                gzip_bytes,
+                zstd_bytes,
+            }
+        })
+        .collect()
+}
+
+/// Compute size statistics for an event across ALL formats (ignores config)
+pub fn compute_size_stats_all(event: &NostrEvent) -> Vec<SizeStats> {
     Format::all()
         .iter()
         .map(|&format| {
@@ -148,9 +200,9 @@ pub fn compute_size_stats(event: &NostrEvent) -> Vec<SizeStats> {
         .collect()
 }
 
-/// Compute size statistics for a batch of events
+/// Compute size statistics for a batch of events (enabled formats only)
 pub fn compute_batch_size_stats(events: &[NostrEvent]) -> Vec<SizeStats> {
-    Format::all()
+    Format::enabled()
         .iter()
         .map(|&format| {
             let data = serialize_batch(events, format);
@@ -395,7 +447,8 @@ mod tests {
     #[test]
     fn test_size_stats() {
         let event = sample_event();
-        let stats = compute_size_stats(&event);
+        // Use _all variant to test all formats regardless of config
+        let stats = compute_size_stats_all(&event);
 
         assert_eq!(stats.len(), 10);
 

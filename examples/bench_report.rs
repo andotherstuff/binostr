@@ -3,11 +3,17 @@
 //! Run with: `cargo run --release --example bench_report`
 //!
 //! This produces a single report comparing all formats on:
-//! - Serialization speed
-//! - Deserialization speed
-//! - Wire size (raw and compressed)
+//! - Serialization speed (client-side, less critical)
+//! - Deserialization speed (relay-side, critical)
+//! - Wire size (storage + bandwidth, critical)
+//!
+//! Weightings reflect real-world Nostr relay workloads where:
+//! - Relays must parse/validate every incoming event (deserialization-heavy)
+//! - Storage and bandwidth costs dominate (size-critical)
+//! - Clients serialize when posting (less frequent, can be slower)
 
-use binostr::{capnp, cbor, dannypack, json, notepack, proto, EventLoader, NostrEvent};
+use binostr::stats::Format;
+use binostr::{capnp, cbor, config, dannypack, json, notepack, proto, EventLoader, NostrEvent};
 use std::time::Instant;
 
 const WARMUP_ITERATIONS: usize = 100;
@@ -153,11 +159,21 @@ where
     }
 }
 
+/// Check if a format is enabled in config
+fn is_enabled(short_name: &str) -> bool {
+    config::is_format_enabled(short_name)
+}
+
 fn main() {
     println!();
     println!("╔══════════════════════════════════════════════════════════════════════════════╗");
     println!("║                    BINOSTR COMPREHENSIVE BENCHMARK REPORT                    ║");
     println!("╚══════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+
+    // Show enabled formats
+    let enabled: Vec<_> = Format::enabled().iter().map(|f| f.name()).collect();
+    println!("Enabled formats: {}", enabled.join(", "));
     println!();
 
     // Load events
@@ -168,128 +184,155 @@ fn main() {
     println!("Running benchmarks ({} iterations each)...", BENCH_ITERATIONS);
     println!();
 
-    // Measure all formats
+    // Measure all enabled formats
     let mut results = Vec::new();
 
-    print!("  JSON...           ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "JSON",
-        "json",
-        &events,
-        json::serialize,
-        |d| json::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    // JSON is always included as baseline
+    if is_enabled("json") {
+        print!("  JSON...           ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "JSON",
+            "json",
+            &events,
+            json::serialize,
+            |d| json::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  CBOR Schemaless... ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "CBOR Schemaless",
-        "cbor_schema",
-        &events,
-        cbor::schemaless::serialize,
-        |d| cbor::schemaless::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("cbor_schemaless") {
+        print!("  CBOR Schemaless... ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "CBOR Schemaless",
+            "cbor_schemaless",
+            &events,
+            cbor::schemaless::serialize,
+            |d| cbor::schemaless::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  CBOR Packed...    ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "CBOR Packed",
-        "cbor_packed",
-        &events,
-        cbor::packed::serialize,
-        |d| cbor::packed::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("cbor_packed") {
+        print!("  CBOR Packed...    ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "CBOR Packed",
+            "cbor_packed",
+            &events,
+            cbor::packed::serialize,
+            |d| cbor::packed::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  CBOR IntKey...    ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "CBOR IntKey",
-        "cbor_intkey",
-        &events,
-        cbor::intkey::serialize,
-        |d| cbor::intkey::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("cbor_intkey") {
+        print!("  CBOR IntKey...    ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "CBOR IntKey",
+            "cbor_intkey",
+            &events,
+            cbor::intkey::serialize,
+            |d| cbor::intkey::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  Proto String...   ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "Proto String",
-        "proto_str",
-        &events,
-        proto::string::serialize,
-        |d| proto::string::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("proto_string") {
+        print!("  Proto String...   ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "Proto String",
+            "proto_string",
+            &events,
+            proto::string::serialize,
+            |d| proto::string::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  Proto Binary...   ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "Proto Binary",
-        "proto_bin",
-        &events,
-        proto::binary::serialize,
-        |d| proto::binary::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("proto_binary") {
+        print!("  Proto Binary...   ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "Proto Binary",
+            "proto_binary",
+            &events,
+            proto::binary::serialize,
+            |d| proto::binary::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  Cap'n Proto...    ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "Cap'n Proto",
-        "capnp",
-        &events,
-        capnp::serialize_event,
-        |d| capnp::deserialize_event(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("capnp") {
+        print!("  Cap'n Proto...    ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "Cap'n Proto",
+            "capnp",
+            &events,
+            capnp::serialize_event,
+            |d| capnp::deserialize_event(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  Cap'n Packed...   ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "Cap'n Packed",
-        "capnp_pk",
-        &events,
-        capnp::serialize_event_packed,
-        |d| capnp::deserialize_event_packed(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("capnp_packed") {
+        print!("  Cap'n Packed...   ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "Cap'n Packed",
+            "capnp_packed",
+            &events,
+            capnp::serialize_event_packed,
+            |d| capnp::deserialize_event_packed(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  DannyPack...      ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "DannyPack",
-        "dannypack",
-        &events,
-        |e| {
-            let mut buf = Vec::new();
-            dannypack::serialize(e, &mut buf);
-            buf
-        },
-        |d| dannypack::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("dannypack") {
+        print!("  DannyPack...      ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "DannyPack",
+            "dannypack",
+            &events,
+            |e| {
+                let mut buf = Vec::new();
+                dannypack::serialize(e, &mut buf);
+                buf
+            },
+            |d| dannypack::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
 
-    print!("  Notepack...       ");
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-    results.push(measure_format(
-        "Notepack",
-        "notepack",
-        &events,
-        notepack::serialize,
-        |d| notepack::deserialize(d).unwrap(),
-    ));
-    println!("✓");
+    if is_enabled("notepack") {
+        print!("  Notepack...       ");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        results.push(measure_format(
+            "Notepack",
+            "notepack",
+            &events,
+            notepack::serialize,
+            |d| notepack::deserialize(d).unwrap(),
+        ));
+        println!("✓");
+    }
+
+    if results.is_empty() {
+        println!("No formats enabled! Check binostr.toml");
+        return;
+    }
 
     println!();
 
     // Find winners for highlighting
-    let json_result = results.iter().find(|r| r.short_name == "json").unwrap();
-    let json_size = json_result.total_size;
+    let json_result = results.iter().find(|r| r.short_name == "json");
+    let json_size = json_result.map(|r| r.total_size).unwrap_or(results[0].total_size);
+    let json_zstd = json_result.map(|r| r.zstd_size).unwrap_or(results[0].zstd_size);
 
     let fastest_serialize = results.iter().map(|r| r.serialize_ns).min().unwrap();
     let fastest_deserialize = results.iter().map(|r| r.deserialize_ns).min().unwrap();
@@ -349,8 +392,9 @@ fn main() {
     let mut ser_sorted = results.clone();
     ser_sorted.sort_by_key(|r| r.serialize_ns);
     println!("  📝 SERIALIZATION SPEED (fastest first):");
+    let json_ser_ns = json_result.map(|r| r.serialize_ns).unwrap_or(ser_sorted[0].serialize_ns);
     for (i, r) in ser_sorted.iter().enumerate() {
-        let speedup = json_result.serialize_ns as f64 / r.serialize_ns as f64;
+        let speedup = json_ser_ns as f64 / r.serialize_ns as f64;
         let medal = match i {
             0 => "🥇",
             1 => "🥈",
@@ -373,8 +417,9 @@ fn main() {
     let mut deser_sorted = results.clone();
     deser_sorted.sort_by_key(|r| r.deserialize_ns);
     println!("  📖 DESERIALIZATION SPEED (fastest first):");
+    let json_deser_ns = json_result.map(|r| r.deserialize_ns).unwrap_or(deser_sorted[0].deserialize_ns);
     for (i, r) in deser_sorted.iter().enumerate() {
-        let speedup = json_result.deserialize_ns as f64 / r.deserialize_ns as f64;
+        let speedup = json_deser_ns as f64 / r.deserialize_ns as f64;
         let medal = match i {
             0 => "🥇",
             1 => "🥈",
@@ -422,7 +467,6 @@ fn main() {
     let mut zstd_sorted = results.clone();
     zstd_sorted.sort_by_key(|r| r.zstd_size);
     println!("  🗜️  COMPRESSED SIZE (zstd, smallest first):");
-    let json_zstd = json_result.zstd_size;
     for (i, r) in zstd_sorted.iter().enumerate() {
         let pct = 100.0 * r.zstd_size as f64 / json_zstd as f64;
         let medal = match i {
@@ -452,41 +496,143 @@ fn main() {
     let best_speed = ser_sorted[0].name;
     let best_size = size_sorted[0].name;
     let best_deser = deser_sorted[0].name;
+    let best_compressed = zstd_sorted[0].name;
 
+    println!("  Category Winners:");
     println!("  • Fastest serialization:    {}", best_speed);
     println!("  • Fastest deserialization:  {}", best_deser);
     println!("  • Smallest wire size:       {}", best_size);
+    println!("  • Smallest compressed:      {}", best_compressed);
     println!();
 
-    // Calculate a balanced score (normalize each metric, lower is better)
-    let mut balanced: Vec<(&str, f64)> = results
+    // Calculate relay-focused score (real-world Nostr workload)
+    // Rationale:
+    // - 10% serialization: Clients serialize when posting, less frequent
+    // - 45% deserialization: Relays must parse EVERY incoming event
+    // - 30% raw size: Storage costs, memory pressure
+    // - 15% compressed size: Bandwidth for transfer (often compressed)
+    let mut relay_score: Vec<(&str, f64)> = results
         .iter()
         .map(|r| {
             let ser_score = r.serialize_ns as f64 / fastest_serialize as f64;
             let deser_score = r.deserialize_ns as f64 / fastest_deserialize as f64;
             let size_score = r.total_size as f64 / smallest_raw as f64;
-            // Weight: 30% serialize, 30% deserialize, 40% size
-            let total = 0.3 * ser_score + 0.3 * deser_score + 0.4 * size_score;
+            let zstd_score = r.zstd_size as f64 / smallest_zstd as f64;
+
+            // Relay-focused: heavy on deserialization and size
+            let total = 0.10 * ser_score
+                      + 0.45 * deser_score
+                      + 0.30 * size_score
+                      + 0.15 * zstd_score;
             (r.name, total)
         })
         .collect();
-    balanced.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+    relay_score.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
-    println!("  🎯 BALANCED RECOMMENDATION (30% ser + 30% deser + 40% size):");
-    for (i, (name, score)) in balanced.iter().take(3).enumerate() {
+    println!("  🖥️  RELAY-OPTIMIZED (10% ser + 45% deser + 30% raw + 15% compressed):");
+    println!("     Optimized for relay workloads: fast parsing, compact storage");
+    for (i, (name, score)) in relay_score.iter().take(5).enumerate() {
         let medal = match i {
             0 => "🥇",
             1 => "🥈",
             2 => "🥉",
             _ => "  ",
         };
-        println!("     {} {:<15} (score: {:.2})", medal, name, score);
+        println!("     {} {:2}. {:<15} (score: {:.3})", medal, i + 1, name, score);
     }
     println!();
 
-    println!("  📋 For a Nostr NIP recommendation:");
-    println!("     • Best for bandwidth-constrained: {}", best_size);
-    println!("     • Best for CPU-constrained:       {}", best_speed);
-    println!("     • Best balanced:                  {}", balanced[0].0);
+    // Calculate client-focused score (prioritizes encode speed)
+    // - 35% serialization: Clients need responsive posting
+    // - 25% deserialization: Reading feed
+    // - 25% raw size: Bandwidth usage
+    // - 15% compressed size: Transfer efficiency
+    let mut client_score: Vec<(&str, f64)> = results
+        .iter()
+        .map(|r| {
+            let ser_score = r.serialize_ns as f64 / fastest_serialize as f64;
+            let deser_score = r.deserialize_ns as f64 / fastest_deserialize as f64;
+            let size_score = r.total_size as f64 / smallest_raw as f64;
+            let zstd_score = r.zstd_size as f64 / smallest_zstd as f64;
+
+            let total = 0.35 * ser_score
+                      + 0.25 * deser_score
+                      + 0.25 * size_score
+                      + 0.15 * zstd_score;
+            (r.name, total)
+        })
+        .collect();
+    client_score.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+    println!("  📱 CLIENT-OPTIMIZED (35% ser + 25% deser + 25% raw + 15% compressed):");
+    println!("     Optimized for client apps: responsive posting, efficient reading");
+    for (i, (name, score)) in client_score.iter().take(5).enumerate() {
+        let medal = match i {
+            0 => "🥇",
+            1 => "🥈",
+            2 => "🥉",
+            _ => "  ",
+        };
+        println!("     {} {:2}. {:<15} (score: {:.3})", medal, i + 1, name, score);
+    }
+    println!();
+
+    // Calculate pure size score (bandwidth/storage focused)
+    // - 0% serialization
+    // - 0% deserialization
+    // - 60% raw size: Direct storage impact
+    // - 40% compressed size: Transfer efficiency
+    let mut size_score_vec: Vec<(&str, f64)> = results
+        .iter()
+        .map(|r| {
+            let size_score = r.total_size as f64 / smallest_raw as f64;
+            let zstd_score = r.zstd_size as f64 / smallest_zstd as f64;
+            let total = 0.60 * size_score + 0.40 * zstd_score;
+            (r.name, total)
+        })
+        .collect();
+    size_score_vec.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+    println!("  💾 SIZE-OPTIMIZED (60% raw + 40% compressed):");
+    println!("     Optimized for storage/bandwidth: smallest footprint");
+    for (i, (name, score)) in size_score_vec.iter().take(5).enumerate() {
+        let medal = match i {
+            0 => "🥇",
+            1 => "🥈",
+            2 => "🥉",
+            _ => "  ",
+        };
+        println!("     {} {:2}. {:<15} (score: {:.3})", medal, i + 1, name, score);
+    }
+    println!();
+
+    println!("┌──────────────────────────────────────────────────────────────────────────────┐");
+    println!("│                          NOSTR NIP RECOMMENDATION                            │");
+    println!("└──────────────────────────────────────────────────────────────────────────────┘");
+    println!();
+    println!("  For a binary Nostr format NIP, the primary concerns are:");
+    println!("  1. Relay performance (parsing millions of events/day)");
+    println!("  2. Storage efficiency (disk costs scale with data)");
+    println!("  3. Bandwidth savings (users on mobile/metered connections)");
+    println!();
+    println!("  Based on relay-optimized scoring:");
+    println!("     🏆 RECOMMENDED: {}", relay_score[0].0);
+    if relay_score.len() > 1 {
+        println!("     🥈 Runner-up:   {}", relay_score[1].0);
+    }
+    println!();
+    println!("  Key metrics for {}:", relay_score[0].0);
+    if let Some(winner) = results.iter().find(|r| r.name == relay_score[0].0) {
+        let size_vs_json = 100.0 * winner.total_size as f64 / json_size as f64;
+        let zstd_vs_json = 100.0 * winner.zstd_size as f64 / json_zstd as f64;
+        println!("     • Raw size:    {:.1}% of JSON ({:.1}% savings)", size_vs_json, 100.0 - size_vs_json);
+        println!("     • Compressed:  {:.1}% of JSON+zstd", zstd_vs_json);
+        println!("     • Decode:      {} ({})",
+            format_ns(winner.deserialize_ns),
+            format_throughput(winner.deserialize_ns, events.len()));
+        println!("     • Encode:      {} ({})",
+            format_ns(winner.serialize_ns),
+            format_throughput(winner.serialize_ns, events.len()));
+    }
     println!();
 }
