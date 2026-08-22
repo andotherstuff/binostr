@@ -1,0 +1,24 @@
+{
+  "type": "record",
+  "name": "NostrEvent",
+  "namespace": "org.nostr",
+  "doc": "Nostr event profile for Apache Avro binary datum encoding",
+  "fields": [
+    {"name": "id", "type": {"type": "fixed", "name": "EventId", "size": 32}},
+    {"name": "pubkey", "type": {"type": "fixed", "name": "Pubkey", "size": 32}},
+    {"name": "created_at", "type": "long"},
+    {"name": "kind", "type": "int"},
+    {
+      "name": "tags",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": ["string", "bytes"]
+        }
+      }
+    },
+    {"name": "content", "type": "string"},
+    {"name": "sig", "type": {"type": "fixed", "name": "Signature", "size": 64}}
+  ]
+}

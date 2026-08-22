@@ -1,5 +1,11 @@
-; CDDL Schema for Nostr Events
-; Used for CBOR serialization validation
+; CDDL profile for Nostr events encoded with CBOR (RFC 8949).
+;
+; Cryptographic fields are byte strings. In the packed and integer-keyed
+; profiles, a tag value is either ordinary text or the decoded bytes of a
+; lowercase, even-length hexadecimal NIP-01 string. A decoder converts tag byte
+; strings back to lowercase hexadecimal text. Uppercase and short
+; hexadecimal-looking strings remain text so the transform is reversible. The
+; schemaless implementation currently emits text tag values only.
 
 ; ============================================
 ; Option A: Schemaless (JSON-like with field names)
@@ -7,7 +13,7 @@
 nostr-event-schemaless = {
   "id": bstr .size 32,
   "pubkey": bstr .size 32,
-  "created_at": uint,
+  "created_at": int,
   "kind": uint,
   "tags": [* tag],
   "content": tstr,
@@ -21,7 +27,7 @@ nostr-event-schemaless = {
 nostr-event-packed = [
   bstr .size 32,    ; 0: id
   bstr .size 32,    ; 1: pubkey
-  uint,             ; 2: created_at
+  int,              ; 2: created_at
   uint,             ; 3: kind
   [* tag],          ; 4: tags
   tstr,             ; 5: content
@@ -34,7 +40,7 @@ nostr-event-packed = [
 nostr-event-intkey = {
   0: bstr .size 32,   ; id
   1: bstr .size 32,   ; pubkey
-  2: uint,            ; created_at
+  2: int,             ; created_at
   3: uint,            ; kind
   4: [* tag],         ; tags
   5: tstr,            ; content
@@ -44,9 +50,9 @@ nostr-event-intkey = {
 ; ============================================
 ; Common definitions
 ; ============================================
-tag = [+ tstr]  ; A tag is one or more strings
+tag-value = tstr / bstr
+tag = [* tag-value]
 
 ; Batch of events
 event-batch-packed = [* nostr-event-packed]
 event-batch-intkey = [* nostr-event-intkey]
-

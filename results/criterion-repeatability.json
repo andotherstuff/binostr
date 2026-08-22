@@ -1,0 +1,759 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-08-21T23:15:07Z",
+  "campaign": "m4max-2026-08-21",
+  "run_count": 3,
+  "run_labels": [
+    "run-1",
+    "run-2",
+    "run-3"
+  ],
+  "event_count": 1000,
+  "seed": 4776434982410539521,
+  "corpus_id_sha256": "a05ceb17de26aca15c5b284652a6e55188b0c5a135fb89839459d9d93ae492f5",
+  "criterion": {
+    "samples": 100,
+    "warmup_ms": 5000,
+    "measurement_seconds": 10,
+    "confidence": 0.95,
+    "noise_threshold": 0.01
+  },
+  "units": "nanoseconds_per_event",
+  "metadata": {
+    "git_commit": "0251b60ab9aea1d804a45b5f14ec62a46ff651b3",
+    "git_dirty": true,
+    "rustc": "rustc 1.96.1 (31fca3adb 2026-06-26) (Homebrew)",
+    "host": "Darwin 25.6.0 arm64; Apple M4 Max"
+  },
+  "validated_ingest": [
+    {
+      "key": "json",
+      "decode_id": {
+        "points": [
+          9828.1997,
+          9876.386739999998,
+          9823.49852181818
+        ],
+        "median": 9828.1997,
+        "minimum": 9823.49852181818,
+        "maximum": 9876.386739999998,
+        "relative_range_percent": 0.5381272236645634
+      },
+      "validated": {
+        "points": [
+          28037.6293575,
+          28054.753934999997,
+          28109.88636
+        ],
+        "median": 28054.753934999997,
+        "minimum": 28037.6293575,
+        "maximum": 28109.88636,
+        "relative_range_percent": 0.2575570709599191
+      }
+    },
+    {
+      "key": "cbor_packed",
+      "decode_id": {
+        "points": [
+          11552.949165555556,
+          11501.231755555555,
+          11487.463658888893
+        ],
+        "median": 11501.231755555555,
+        "minimum": 11487.463658888893,
+        "maximum": 11552.949165555556,
+        "relative_range_percent": 0.5693782027740656
+      },
+      "validated": {
+        "points": [
+          29826.954055,
+          29816.9355225,
+          29779.29562
+        ],
+        "median": 29816.9355225,
+        "minimum": 29779.29562,
+        "maximum": 29826.954055,
+        "relative_range_percent": 0.1598367979970117
+      }
+    },
+    {
+      "key": "msgpack",
+      "decode_id": {
+        "points": [
+          10286.839829999999,
+          10310.683459000005,
+          10285.730455000003
+        ],
+        "median": 10286.839829999999,
+        "minimum": 10285.730455000003,
+        "maximum": 10310.683459000005,
+        "relative_range_percent": 0.24257210583984273
+      },
+      "validated": {
+        "points": [
+          28628.5311425,
+          28547.6170725,
+          28455.868844999997
+        ],
+        "median": 28547.6170725,
+        "minimum": 28455.868844999997,
+        "maximum": 28628.5311425,
+        "relative_range_percent": 0.6048221014787564
+      }
+    },
+    {
+      "key": "flatbuffers",
+      "decode_id": {
+        "points": [
+          11816.349075555556,
+          11753.961014444443,
+          11813.607084444446
+        ],
+        "median": 11813.607084444446,
+        "minimum": 11753.961014444443,
+        "maximum": 11816.349075555556,
+        "relative_range_percent": 0.5281034036866016
+      },
+      "validated": {
+        "points": [
+          30072.7500075,
+          29979.181774999997,
+          30186.8294775
+        ],
+        "median": 30072.7500075,
+        "minimum": 29979.181774999997,
+        "maximum": 30186.8294775,
+        "relative_range_percent": 0.6904845830468309
+      }
+    },
+    {
+      "key": "flexbuffers",
+      "decode_id": {
+        "points": [
+          10897.515582,
+          10843.093625999998,
+          10880.768089999998
+        ],
+        "median": 10880.768089999998,
+        "minimum": 10843.093625999998,
+        "maximum": 10897.515582,
+        "relative_range_percent": 0.500166491463214
+      },
+      "validated": {
+        "points": [
+          29076.764082499998,
+          29032.0294875,
+          29199.19709
+        ],
+        "median": 29076.764082499998,
+        "minimum": 29032.0294875,
+        "maximum": 29199.19709,
+        "relative_range_percent": 0.574918178741259
+      }
+    },
+    {
+      "key": "avro",
+      "decode_id": {
+        "points": [
+          12312.592081111105,
+          12287.157122222217,
+          12264.238241111114
+        ],
+        "median": 12287.157122222217,
+        "minimum": 12264.238241111114,
+        "maximum": 12312.592081111105,
+        "relative_range_percent": 0.39353155102525084
+      },
+      "validated": {
+        "points": [
+          30504.337085,
+          30964.4902075,
+          30549.7525125
+        ],
+        "median": 30549.7525125,
+        "minimum": 30504.337085,
+        "maximum": 30964.4902075,
+        "relative_range_percent": 1.5062417357119986
+      }
+    },
+    {
+      "key": "bson",
+      "decode_id": {
+        "points": [
+          16052.500235714284,
+          16021.182625714287,
+          16133.596605714283
+        ],
+        "median": 16052.500235714284,
+        "minimum": 16021.182625714287,
+        "maximum": 16133.596605714283,
+        "relative_range_percent": 0.7002895396312926
+      },
+      "validated": {
+        "points": [
+          34417.00402666665,
+          34508.48488333333,
+          34560.66418000001
+        ],
+        "median": 34508.48488333333,
+        "minimum": 34417.00402666665,
+        "maximum": 34560.66418000001,
+        "relative_range_percent": 0.4163038563386584
+      }
+    },
+    {
+      "key": "thrift_compact",
+      "decode_id": {
+        "points": [
+          10537.214124999999,
+          10509.313632000001,
+          10581.336623999998
+        ],
+        "median": 10537.214124999999,
+        "minimum": 10509.313632000001,
+        "maximum": 10581.336623999998,
+        "relative_range_percent": 0.6835107566915514
+      },
+      "validated": {
+        "points": [
+          28697.4731225,
+          28779.0110375,
+          28748.1027175
+        ],
+        "median": 28748.1027175,
+        "minimum": 28697.4731225,
+        "maximum": 28779.0110375,
+        "relative_range_percent": 0.2836288564892519
+      }
+    },
+    {
+      "key": "beve",
+      "decode_id": {
+        "points": [
+          11507.44073444444,
+          11478.633148888894,
+          11485.407357777774
+        ],
+        "median": 11485.407357777774,
+        "minimum": 11478.633148888894,
+        "maximum": 11507.44073444444,
+        "relative_range_percent": 0.2508190145823516
+      },
+      "validated": {
+        "points": [
+          29601.7918975,
+          29676.46906,
+          29704.512609999998
+        ],
+        "median": 29676.46906,
+        "minimum": 29601.7918975,
+        "maximum": 29704.512609999998,
+        "relative_range_percent": 0.3461352234739163
+      }
+    },
+    {
+      "key": "bincode",
+      "decode_id": {
+        "points": [
+          10153.991287999997,
+          10143.281703999999,
+          10147.260952000004
+        ],
+        "median": 10147.260952000004,
+        "minimum": 10143.281703999999,
+        "maximum": 10153.991287999997,
+        "relative_range_percent": 0.1055416239974347
+      },
+      "validated": {
+        "points": [
+          28275.7828075,
+          28293.560510000003,
+          28330.76573
+        ],
+        "median": 28293.560510000003,
+        "minimum": 28275.7828075,
+        "maximum": 28330.76573,
+        "relative_range_percent": 0.19433016385677718
+      }
+    },
+    {
+      "key": "postcard",
+      "decode_id": {
+        "points": [
+          10137.745667000001,
+          10130.303166000002,
+          10135.790501000001
+        ],
+        "median": 10135.790501000001,
+        "minimum": 10130.303166000002,
+        "maximum": 10137.745667000001,
+        "relative_range_percent": 0.07342792848042053
+      },
+      "validated": {
+        "points": [
+          28380.3129125,
+          28189.717285,
+          28328.1238475
+        ],
+        "median": 28328.1238475,
+        "minimum": 28189.717285,
+        "maximum": 28380.3129125,
+        "relative_range_percent": 0.6728141564405895
+      }
+    },
+    {
+      "key": "proto_binary",
+      "decode_id": {
+        "points": [
+          11554.131799999996,
+          11543.374446666665,
+          11632.061808888888
+        ],
+        "median": 11554.131799999996,
+        "minimum": 11543.374446666665,
+        "maximum": 11632.061808888888,
+        "relative_range_percent": 0.7675813618659163
+      },
+      "validated": {
+        "points": [
+          29631.7435475,
+          29613.917285,
+          29797.7879225
+        ],
+        "median": 29631.7435475,
+        "minimum": 29613.917285,
+        "maximum": 29797.7879225,
+        "relative_range_percent": 0.6205191307938177
+      }
+    },
+    {
+      "key": "capnp_packed",
+      "decode_id": {
+        "points": [
+          9376.105756363635,
+          9327.395875454546,
+          9540.072767272724
+        ],
+        "median": 9376.105756363635,
+        "minimum": 9327.395875454546,
+        "maximum": 9540.072767272724,
+        "relative_range_percent": 2.2682859744178265
+      },
+      "validated": {
+        "points": [
+          27428.98115,
+          27358.49375,
+          27588.1527175
+        ],
+        "median": 27428.98115,
+        "minimum": 27358.49375,
+        "maximum": 27588.1527175,
+        "relative_range_percent": 0.8372858118355576
+      }
+    },
+    {
+      "key": "dannypack",
+      "decode_id": {
+        "points": [
+          7578.9804164285715,
+          7576.744316428573,
+          7619.94279857143
+        ],
+        "median": 7578.9804164285715,
+        "minimum": 7576.744316428573,
+        "maximum": 7619.94279857143,
+        "relative_range_percent": 0.5699774873308511
+      },
+      "validated": {
+        "points": [
+          25642.9946825,
+          25660.5090725,
+          25761.6485375
+        ],
+        "median": 25660.5090725,
+        "minimum": 25642.9946825,
+        "maximum": 25761.6485375,
+        "relative_range_percent": 0.4623986790938614
+      }
+    },
+    {
+      "key": "notepack",
+      "decode_id": {
+        "points": [
+          9360.982465454543,
+          9409.674854545456,
+          9393.664958181818
+        ],
+        "median": 9393.664958181818,
+        "minimum": 9360.982465454543,
+        "maximum": 9409.674854545456,
+        "relative_range_percent": 0.5183534787293236
+      },
+      "validated": {
+        "points": [
+          27470.669175,
+          27530.7042575,
+          27584.3862275
+        ],
+        "median": 27530.7042575,
+        "minimum": 27470.669175,
+        "maximum": 27584.3862275,
+        "relative_range_percent": 0.41305537060142944
+      }
+    }
+  ],
+  "selective_access": [
+    {
+      "path": "notepack/selective_checked",
+      "label": "Notepack checked selective kind + pubkey",
+      "contract": "selected-field parser checks",
+      "timing": {
+        "points": [
+          11.402170372539002,
+          11.527720180286686,
+          11.264518408469577
+        ],
+        "median": 11.402170372539002,
+        "minimum": 11.264518408469577,
+        "maximum": 11.527720180286686,
+        "relative_range_percent": 2.308348000578941
+      }
+    },
+    {
+      "path": "flatbuffers/selective_preverified",
+      "label": "FlatBuffers selective, exact buffer preverified",
+      "contract": "exact immutable buffer verified earlier",
+      "timing": {
+        "points": [
+          16.990272776659985,
+          16.702952906728314,
+          16.724574732196412
+        ],
+        "median": 16.724574732196412,
+        "minimum": 16.702952906728314,
+        "maximum": 16.990272776659985,
+        "relative_range_percent": 1.7179502291233353
+      }
+    },
+    {
+      "path": "flexbuffers/selective_checked",
+      "label": "FlexBuffers checked selective kind + pubkey",
+      "contract": "root, vector, bounds, and selected types checked; skipped subtrees not fully verified",
+      "timing": {
+        "points": [
+          18.217298767385707,
+          18.26391327425031,
+          18.162226825369103
+        ],
+        "median": 18.217298767385707,
+        "minimum": 18.162226825369103,
+        "maximum": 18.26391327425031,
+        "relative_range_percent": 0.5581862063065866
+      }
+    },
+    {
+      "path": "capnp/selective_checked",
+      "label": "Cap\u2019n Proto selective checked",
+      "contract": "message reader and selected fields checked",
+      "timing": {
+        "points": [
+          137.23978882399882,
+          137.57577217161716,
+          137.19622897591253
+        ],
+        "median": 137.23978882399882,
+        "minimum": 137.19622897591253,
+        "maximum": 137.57577217161716,
+        "relative_range_percent": 0.2765547797449377
+      }
+    },
+    {
+      "path": "beve/selective_preverified",
+      "label": "BEVE selective, exact buffer preverified",
+      "contract": "exact immutable buffer verified earlier; selected paths checked",
+      "timing": {
+        "points": [
+          202.7061358652283,
+          200.52992106930694,
+          198.91118291650656
+        ],
+        "median": 200.52992106930694,
+        "minimum": 198.91118291650656,
+        "maximum": 202.7061358652283,
+        "relative_range_percent": 1.8924621964071564
+      }
+    },
+    {
+      "path": "beve/selective_verify_each",
+      "label": "BEVE selective, verify each read",
+      "contract": "whole value verified before selected paths",
+      "timing": {
+        "points": [
+          891.266891373824,
+          893.0851099738929,
+          884.1834633338259
+        ],
+        "median": 891.266891373824,
+        "minimum": 884.1834633338259,
+        "maximum": 893.0851099738929,
+        "relative_range_percent": 0.9987633026899263
+      }
+    },
+    {
+      "path": "flatbuffers/selective_verify_each",
+      "label": "FlatBuffers selective, verify each read",
+      "contract": "whole buffer verified before selected fields",
+      "timing": {
+        "points": [
+          2156.8904068065613,
+          2153.047155386434,
+          2157.4124655563764
+        ],
+        "median": 2156.8904068065613,
+        "minimum": 2153.047155386434,
+        "maximum": 2157.4124655563764,
+        "relative_range_percent": 0.2023890576993003
+      }
+    },
+    {
+      "path": "json/full_materialize",
+      "label": "JSON full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          4235.867935833334,
+          4196.267014583333,
+          4214.626614999998
+        ],
+        "median": 4214.626614999998,
+        "minimum": 4196.267014583333,
+        "maximum": 4235.867935833334,
+        "relative_range_percent": 0.9396068707263456
+      }
+    },
+    {
+      "path": "cbor_packed/full_materialize",
+      "label": "CBOR packed full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          5843.846503888891,
+          5911.997387777778,
+          5863.197524999999
+        ],
+        "median": 5863.197524999999,
+        "minimum": 5843.846503888891,
+        "maximum": 5911.997387777778,
+        "relative_range_percent": 1.162350127184017
+      }
+    },
+    {
+      "path": "msgpack/full_materialize",
+      "label": "MessagePack full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          4644.686364545453,
+          4681.640869090911,
+          4659.714507727274
+        ],
+        "median": 4659.714507727274,
+        "minimum": 4644.686364545453,
+        "maximum": 4681.640869090911,
+        "relative_range_percent": 0.7930637056020425
+      }
+    },
+    {
+      "path": "flatbuffers/full_materialize",
+      "label": "FlatBuffers full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          6136.951271764707,
+          6165.989114117649,
+          6126.807498823529
+        ],
+        "median": 6136.951271764707,
+        "minimum": 6126.807498823529,
+        "maximum": 6165.989114117649,
+        "relative_range_percent": 0.6384540720469554
+      }
+    },
+    {
+      "path": "flexbuffers/full_materialize",
+      "label": "FlexBuffers full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          5225.851938,
+          5229.225706000001,
+          5223.453478999998
+        ],
+        "median": 5225.851938,
+        "minimum": 5223.453478999998,
+        "maximum": 5229.225706000001,
+        "relative_range_percent": 0.11045523425625829
+      }
+    },
+    {
+      "path": "avro/full_materialize",
+      "label": "Avro binary datum full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          6670.597720000002,
+          6691.798333333332,
+          6660.688528000001
+        ],
+        "median": 6670.597720000002,
+        "minimum": 6660.688528000001,
+        "maximum": 6691.798333333332,
+        "relative_range_percent": 0.46637207997204294
+      }
+    },
+    {
+      "path": "bson/full_materialize",
+      "label": "BSON full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          10473.351373999998,
+          10414.577543999998,
+          10444.343373000002
+        ],
+        "median": 10444.343373000002,
+        "minimum": 10414.577543999998,
+        "maximum": 10473.351373999998,
+        "relative_range_percent": 0.5627336051774988
+      }
+    },
+    {
+      "path": "thrift_compact/full_materialize",
+      "label": "Thrift Compact full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          4936.995038571428,
+          4942.4378733333315,
+          4935.734762380954
+        ],
+        "median": 4936.995038571428,
+        "minimum": 4935.734762380954,
+        "maximum": 4942.4378733333315,
+        "relative_range_percent": 0.13577309476732574
+      }
+    },
+    {
+      "path": "beve/full_materialize",
+      "label": "BEVE emerging reference full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          5869.474492777777,
+          5858.144514444445,
+          5822.340274444447
+        ],
+        "median": 5858.144514444445,
+        "minimum": 5822.340274444447,
+        "maximum": 5869.474492777777,
+        "relative_range_percent": 0.8045929597180793
+      }
+    },
+    {
+      "path": "bincode/full_materialize",
+      "label": "bincode reference full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          4545.512232727273,
+          4527.876233478262,
+          4544.114455652174
+        ],
+        "median": 4544.114455652174,
+        "minimum": 4527.876233478262,
+        "maximum": 4545.512232727273,
+        "relative_range_percent": 0.3881064049140353
+      }
+    },
+    {
+      "path": "postcard/full_materialize",
+      "label": "postcard reference full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          4494.329256086957,
+          4492.254021304347,
+          4478.183585652172
+        ],
+        "median": 4492.254021304347,
+        "minimum": 4478.183585652172,
+        "maximum": 4494.329256086957,
+        "relative_range_percent": 0.35941134134923125
+      }
+    },
+    {
+      "path": "proto_binary/full_materialize",
+      "label": "Protocol Buffers binary full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          6020.1560288235305,
+          6042.255027058826,
+          5982.388777058824
+        ],
+        "median": 6020.1560288235305,
+        "minimum": 5982.388777058824,
+        "maximum": 6042.255027058826,
+        "relative_range_percent": 0.9944302060174514
+      }
+    },
+    {
+      "path": "capnp_packed/full_materialize",
+      "label": "Cap\u2019n Proto packed custom profile full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          3776.8352166868626,
+          3737.964105278558,
+          3739.843516420866
+        ],
+        "median": 3739.843516420866,
+        "minimum": 3737.964105278558,
+        "maximum": 3776.8352166868626,
+        "relative_range_percent": 1.0393780177601006
+      }
+    },
+    {
+      "path": "dannypack/full_materialize",
+      "label": "DannyPack custom reference full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          2058.850405512044,
+          2056.942104752475,
+          2072.4545895197284
+        ],
+        "median": 2058.850405512044,
+        "minimum": 2056.942104752475,
+        "maximum": 2072.4545895197284,
+        "relative_range_percent": 0.7534537101735284
+      }
+    },
+    {
+      "path": "notepack/full_materialize",
+      "label": "Notepack custom reference full materialization",
+      "contract": "complete owned event",
+      "timing": {
+        "points": [
+          3761.9582103118073,
+          3754.2158895345055,
+          3754.817411706813
+        ],
+        "median": 3754.817411706813,
+        "minimum": 3754.2158895345055,
+        "maximum": 3761.9582103118073,
+        "relative_range_percent": 0.20619699783969947
+      }
+    }
+  ]
+}

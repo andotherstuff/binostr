@@ -22,6 +22,9 @@ pub enum NotepackError {
 
     #[error("Invalid field size: expected {expected}, got {actual}")]
     InvalidFieldSize { expected: usize, actual: usize },
+
+    #[error("Notepack kind is outside the Nostr u16 range: {0}")]
+    InvalidKind(u64),
 }
 
 /// Serialize a NostrEvent to notepack binary format
@@ -45,6 +48,7 @@ pub fn serialize(event: &NostrEvent) -> Vec<u8> {
 pub fn deserialize(data: &[u8]) -> Result<NostrEvent, NotepackError> {
     let parser = NoteParser::new(data);
     let note = parser.into_note()?;
+    let kind = u16::try_from(note.kind).map_err(|_| NotepackError::InvalidKind(note.kind))?;
 
     // Copy fixed-size arrays (note.id/pubkey/sig are already &[u8; N])
     let id: [u8; 32] = *note.id;
@@ -69,11 +73,28 @@ pub fn deserialize(data: &[u8]) -> Result<NostrEvent, NotepackError> {
         id,
         pubkey,
         created_at: note.created_at as i64,
-        kind: note.kind as u16,
+        kind,
         tags: tags_vec,
         content: note.content.to_string(),
         sig,
     })
+}
+
+pub fn read_kind(data: &[u8]) -> Result<u16, NotepackError> {
+    let kind = NoteParser::new(data).read_kind()?;
+    u16::try_from(kind).map_err(|_| NotepackError::InvalidKind(kind))
+}
+
+pub fn read_pubkey(data: &[u8]) -> Result<[u8; 32], NotepackError> {
+    Ok(*NoteParser::new(data).read_pubkey()?)
+}
+
+pub fn read_kind_and_pubkey(data: &[u8]) -> Result<(u16, [u8; 32]), NotepackError> {
+    let (kind, pubkey) = NoteParser::new(data).read_kind_and_pubkey()?;
+    Ok((
+        u16::try_from(kind).map_err(|_| NotepackError::InvalidKind(kind))?,
+        *pubkey,
+    ))
 }
 
 /// Serialize a batch of events to notepack format
@@ -101,6 +122,9 @@ pub fn deserialize_batch(data: &[u8]) -> Result<Vec<NostrEvent>, NotepackError> 
     }
 
     let event_count = u32::from_le_bytes(data[0..4].try_into().unwrap()) as usize;
+    if event_count > (data.len() - 4) / 4 {
+        return Err(NotepackError::MissingField("event data"));
+    }
     let mut pos = 4;
     let mut events = Vec::with_capacity(event_count);
 
@@ -112,12 +136,16 @@ pub fn deserialize_batch(data: &[u8]) -> Result<Vec<NostrEvent>, NotepackError> 
         let event_len = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) as usize;
         pos += 4;
 
-        if pos + event_len > data.len() {
+        if event_len > data.len() - pos {
             return Err(NotepackError::MissingField("event data"));
         }
 
         events.push(deserialize(&data[pos..pos + event_len])?);
         pos += event_len;
+    }
+
+    if pos != data.len() {
+        return Err(NotepackError::MissingField("trailing batch data"));
     }
 
     Ok(events)

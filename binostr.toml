@@ -13,14 +13,31 @@ cbor_schemaless = false  # Basic CBOR with string keys
 cbor_packed = true       # CBOR with packed field indices
 cbor_intkey = false      # CBOR with integer keys
 
+# MessagePack - open standard, compact array representation
+msgpack = true
+
+# Open, schema-defined interoperability candidates
+flatbuffers = true
+flexbuffers = true       # Official schema-less FlatBuffers companion
+avro = true             # Raw Avro binary datum; schema is supplied out of band
+bson = true
+thrift_compact = true
+
+# Emerging open-format performance reference (not a broad-language SDK candidate)
+beve = true
+
+# Rust-only ecosystem references (measured, but not SDK wire-format candidates)
+bincode = true
+postcard = true
+
 # Protocol Buffers variants
 proto_string = false     # Protobuf with hex string fields
-proto_binary = true      # Protobuf with binary fields (recommended)
+proto_binary = true      # Protobuf with binary fields and reversible tag values
 
 # Cap'n Proto variants
 capnp = false            # Cap'n Proto standard
 capnp_packed = true     # Cap'n Proto packed encoding
 
 # Custom formats
-dannypack = false        # Custom compact format (experimental)
-notepack = true          # MessagePack-based Nostr format
+dannypack = true         # Custom compact format (experimental reference)
+notepack = true          # Custom Nostr-specific reference format

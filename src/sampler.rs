@@ -72,6 +72,16 @@ impl EventSampler {
         Ok(sampler)
     }
 
+    /// Load the complete corpus in stable file order and use a fixed seed.
+    ///
+    /// No event kinds are removed: unknown and application-specific kinds are
+    /// part of real relay traffic and excluding them would bias a wire-format
+    /// comparison. Call `filter_kinds` explicitly for a scoped experiment.
+    pub fn from_directory_seeded<P: AsRef<Path>>(dir: P, seed: u64) -> Result<Self, LoadError> {
+        let events = crate::loader::load_from_directory(dir)?;
+        Ok(Self::with_seed(events, seed))
+    }
+
     /// Filter out excluded event kinds (non-standard or test events)
     pub fn filter_excluded_kinds(&mut self) {
         self.events.retain(|e| !EXCLUDED_KINDS.contains(&e.kind));
@@ -401,6 +411,26 @@ mod tests {
 
         let sample = sampler.random_sample(10);
         assert_eq!(sample.len(), 10);
+    }
+
+    #[test]
+    fn seeded_samples_are_reproducible() {
+        let events = make_test_events();
+        let mut first = EventSampler::with_seed(events.clone(), 42);
+        let mut second = EventSampler::with_seed(events, 42);
+
+        let first_ids: Vec<_> = first
+            .random_sample(20)
+            .iter()
+            .map(|event| event.id)
+            .collect();
+        let second_ids: Vec<_> = second
+            .random_sample(20)
+            .iter()
+            .map(|event| event.id)
+            .collect();
+
+        assert_eq!(first_ids, second_ids);
     }
 
     #[test]

@@ -1,0 +1,475 @@
+{
+  "schema_version": 1,
+  "campaign": "m4max-2026-08-21",
+  "label": "run-2",
+  "recorded_utc": "2026-08-21T22:58:52Z",
+  "validated_ingest": {
+    "schema_version": 2,
+    "metadata": {
+      "exported_utc": "2026-08-21T22:58:52Z",
+      "benchmark_estimates_completed_utc": "2026-08-21T22:58:47Z",
+      "git_commit": "0251b60ab9aea1d804a45b5f14ec62a46ff651b3",
+      "git_dirty": true,
+      "rustc": "rustc 1.96.1 (31fca3adb 2026-06-26) (Homebrew)",
+      "host": "Darwin 25.6.0 arm64; Apple M4 Max",
+      "run_count": 1,
+      "power_and_thermal_state": "not recorded"
+    },
+    "command": "BINOSTR_PUBLICATION_BENCH=1 cargo bench --bench validated -- --noplot",
+    "event_count": 1000,
+    "seed": 4776434982410539521,
+    "corpus_id_sha256": "a05ceb17de26aca15c5b284652a6e55188b0c5a135fb89839459d9d93ae492f5",
+    "criterion": {
+      "samples": 100,
+      "warmup_ms": 5000,
+      "measurement_seconds": 10,
+      "confidence": 0.95,
+      "noise_threshold": 0.01
+    },
+    "units": "nanoseconds_per_event",
+    "measurements": [
+      {
+        "key": "json",
+        "decode_id": {
+          "lower": 9862.83681636364,
+          "point": 9876.386739999998,
+          "upper": 9890.41844090909
+        },
+        "validated": {
+          "lower": 28014.994765,
+          "point": 28054.753934999997,
+          "upper": 28099.1731
+        }
+      },
+      {
+        "key": "cbor_packed",
+        "decode_id": {
+          "lower": 11486.89806830556,
+          "point": 11501.231755555555,
+          "upper": 11517.027767777778
+        },
+        "validated": {
+          "lower": 29768.9645379375,
+          "point": 29816.9355225,
+          "upper": 29877.9502134375
+        }
+      },
+      {
+        "key": "msgpack",
+        "decode_id": {
+          "lower": 10298.693940800003,
+          "point": 10310.683459000005,
+          "upper": 10323.866748000004
+        },
+        "validated": {
+          "lower": 28510.4015058125,
+          "point": 28547.6170725,
+          "upper": 28585.394059749997
+        }
+      },
+      {
+        "key": "flatbuffers",
+        "decode_id": {
+          "lower": 11742.839685416668,
+          "point": 11753.961014444443,
+          "upper": 11765.518061111117
+        },
+        "validated": {
+          "lower": 29943.0752401875,
+          "point": 29979.181774999997,
+          "upper": 30016.9420465625
+        }
+      },
+      {
+        "key": "flexbuffers",
+        "decode_id": {
+          "lower": 10832.484919999999,
+          "point": 10843.093625999998,
+          "upper": 10854.19259005
+        },
+        "validated": {
+          "lower": 28999.72531425,
+          "point": 29032.0294875,
+          "upper": 29064.4795798125
+        }
+      },
+      {
+        "key": "avro",
+        "decode_id": {
+          "lower": 12274.18274302778,
+          "point": 12287.157122222217,
+          "upper": 12301.09552636111
+        },
+        "validated": {
+          "lower": 30826.8014676875,
+          "point": 30964.4902075,
+          "upper": 31108.620862937503
+        }
+      },
+      {
+        "key": "bson",
+        "decode_id": {
+          "lower": 16003.169564785718,
+          "point": 16021.182625714287,
+          "upper": 16041.029832821427
+        },
+        "validated": {
+          "lower": 34357.15014774999,
+          "point": 34508.48488333333,
+          "upper": 34752.897308916676
+        }
+      },
+      {
+        "key": "thrift_compact",
+        "decode_id": {
+          "lower": 10494.549309150001,
+          "point": 10509.313632000001,
+          "upper": 10527.622602300002
+        },
+        "validated": {
+          "lower": 28711.767833375005,
+          "point": 28779.0110375,
+          "upper": 28865.4278195
+        }
+      },
+      {
+        "key": "beve",
+        "decode_id": {
+          "lower": 11458.560119416668,
+          "point": 11478.633148888894,
+          "upper": 11502.145980388883
+        },
+        "validated": {
+          "lower": 29642.9775591875,
+          "point": 29676.46906,
+          "upper": 29710.4509476875
+        }
+      },
+      {
+        "key": "bincode",
+        "decode_id": {
+          "lower": 10130.012998899994,
+          "point": 10143.281703999999,
+          "upper": 10158.056106825
+        },
+        "validated": {
+          "lower": 28264.007392312502,
+          "point": 28293.560510000003,
+          "upper": 28323.756117625002
+        }
+      },
+      {
+        "key": "postcard",
+        "decode_id": {
+          "lower": 10106.789120999998,
+          "point": 10130.303166000002,
+          "upper": 10159.815020050002
+        },
+        "validated": {
+          "lower": 28148.484558812503,
+          "point": 28189.717285,
+          "upper": 28235.5586170625
+        }
+      },
+      {
+        "key": "proto_binary",
+        "decode_id": {
+          "lower": 11529.588793833329,
+          "point": 11543.374446666665,
+          "upper": 11558.084116166665
+        },
+        "validated": {
+          "lower": 29573.593664125,
+          "point": 29613.917285,
+          "upper": 29656.930074500004
+        }
+      },
+      {
+        "key": "capnp_packed",
+        "decode_id": {
+          "lower": 9313.905861636365,
+          "point": 9327.395875454546,
+          "upper": 9342.600157272727
+        },
+        "validated": {
+          "lower": 27313.4796430625,
+          "point": 27358.49375,
+          "upper": 27409.330615
+        }
+      },
+      {
+        "key": "dannypack",
+        "decode_id": {
+          "lower": 7566.229817357143,
+          "point": 7576.744316428573,
+          "upper": 7587.908091857142
+        },
+        "validated": {
+          "lower": 25620.2030053125,
+          "point": 25660.5090725,
+          "upper": 25706.2173075625
+        }
+      },
+      {
+        "key": "notepack",
+        "decode_id": {
+          "lower": 9398.284314590906,
+          "point": 9409.674854545456,
+          "upper": 9422.125320931818
+        },
+        "validated": {
+          "lower": 27485.5279504375,
+          "point": 27530.7042575,
+          "upper": 27581.9367525
+        }
+      }
+    ]
+  },
+  "selective_access": {
+    "schema_version": 2,
+    "metadata": {
+      "exported_utc": "2026-08-21T22:58:52Z",
+      "benchmark_estimates_completed_utc": "2026-08-21T22:49:42Z",
+      "git_commit": "0251b60ab9aea1d804a45b5f14ec62a46ff651b3",
+      "git_dirty": true,
+      "rustc": "rustc 1.96.1 (31fca3adb 2026-06-26) (Homebrew)",
+      "host": "Darwin 25.6.0 arm64; Apple M4 Max",
+      "run_count": 1,
+      "power_and_thermal_state": "not recorded"
+    },
+    "command": "BINOSTR_PUBLICATION_BENCH=1 cargo bench --bench zero_copy -- --noplot",
+    "event_count": 1000,
+    "seed": 4776434982410539521,
+    "corpus_id_sha256": "a05ceb17de26aca15c5b284652a6e55188b0c5a135fb89839459d9d93ae492f5",
+    "criterion": {
+      "samples": 100,
+      "warmup_ms": 5000,
+      "measurement_seconds": 10,
+      "confidence": 0.95,
+      "noise_threshold": 0.01
+    },
+    "units": "nanoseconds_per_event",
+    "measurements": [
+      {
+        "path": "notepack/selective_checked",
+        "label": "Notepack checked selective kind + pubkey",
+        "contract": "selected-field parser checks",
+        "interval": {
+          "lower": 11.514064781868312,
+          "point": 11.527720180286686,
+          "upper": 11.541707048570133
+        }
+      },
+      {
+        "path": "flatbuffers/selective_preverified",
+        "label": "FlatBuffers selective, exact buffer preverified",
+        "contract": "exact immutable buffer verified earlier",
+        "interval": {
+          "lower": 16.683994912028876,
+          "point": 16.702952906728314,
+          "upper": 16.721061466624203
+        }
+      },
+      {
+        "path": "flexbuffers/selective_checked",
+        "label": "FlexBuffers checked selective kind + pubkey",
+        "contract": "root, vector, bounds, and selected types checked; skipped subtrees not fully verified",
+        "interval": {
+          "lower": 18.240981698080887,
+          "point": 18.26391327425031,
+          "upper": 18.287306994668928
+        }
+      },
+      {
+        "path": "capnp/selective_checked",
+        "label": "Cap\u2019n Proto selective checked",
+        "contract": "message reader and selected fields checked",
+        "interval": {
+          "lower": 137.31291772677,
+          "point": 137.57577217161716,
+          "upper": 137.88253050740354
+        }
+      },
+      {
+        "path": "beve/selective_preverified",
+        "label": "BEVE selective, exact buffer preverified",
+        "contract": "exact immutable buffer verified earlier; selected paths checked",
+        "interval": {
+          "lower": 200.0739104727755,
+          "point": 200.52992106930694,
+          "upper": 200.9707320728616
+        }
+      },
+      {
+        "path": "beve/selective_verify_each",
+        "label": "BEVE selective, verify each read",
+        "contract": "whole value verified before selected paths",
+        "interval": {
+          "lower": 891.355234405505,
+          "point": 893.0851099738929,
+          "upper": 894.9250947965519
+        }
+      },
+      {
+        "path": "flatbuffers/selective_verify_each",
+        "label": "FlatBuffers selective, verify each read",
+        "contract": "whole buffer verified before selected fields",
+        "interval": {
+          "lower": 2150.9097511537057,
+          "point": 2153.047155386434,
+          "upper": 2155.2918918077958
+        }
+      },
+      {
+        "path": "json/full_materialize",
+        "label": "JSON full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 4188.248700833333,
+          "point": 4196.267014583333,
+          "upper": 4204.317832083333
+        }
+      },
+      {
+        "path": "cbor_packed/full_materialize",
+        "label": "CBOR packed full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 5888.753476666669,
+          "point": 5911.997387777778,
+          "upper": 5937.472935638887
+        }
+      },
+      {
+        "path": "msgpack/full_materialize",
+        "label": "MessagePack full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 4675.839484886365,
+          "point": 4681.640869090911,
+          "upper": 4687.451796818182
+        }
+      },
+      {
+        "path": "flatbuffers/full_materialize",
+        "label": "FlatBuffers full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 6131.813322926473,
+          "point": 6165.989114117649,
+          "upper": 6212.534043191174
+        }
+      },
+      {
+        "path": "flexbuffers/full_materialize",
+        "label": "FlexBuffers full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 5222.922208325,
+          "point": 5229.225706000001,
+          "upper": 5235.771225887501
+        }
+      },
+      {
+        "path": "avro/full_materialize",
+        "label": "Avro binary datum full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 6677.244214166667,
+          "point": 6691.798333333332,
+          "upper": 6710.731634316666
+        }
+      },
+      {
+        "path": "bson/full_materialize",
+        "label": "BSON full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 10400.870589999999,
+          "point": 10414.577543999998,
+          "upper": 10428.974386675
+        }
+      },
+      {
+        "path": "thrift_compact/full_materialize",
+        "label": "Thrift Compact full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 4935.507779178571,
+          "point": 4942.4378733333315,
+          "upper": 4949.730124988097
+        }
+      },
+      {
+        "path": "beve/full_materialize",
+        "label": "BEVE emerging reference full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 5850.393856347221,
+          "point": 5858.144514444445,
+          "upper": 5866.081755819446
+        }
+      },
+      {
+        "path": "bincode/full_materialize",
+        "label": "bincode reference full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 4520.636271739131,
+          "point": 4527.876233478262,
+          "upper": 4535.597206923912
+        }
+      },
+      {
+        "path": "postcard/full_materialize",
+        "label": "postcard reference full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 4484.279683934785,
+          "point": 4492.254021304347,
+          "upper": 4500.826540913044
+        }
+      },
+      {
+        "path": "proto_binary/full_materialize",
+        "label": "Protocol Buffers binary full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 6035.51751201471,
+          "point": 6042.255027058826,
+          "upper": 6049.273947058824
+        }
+      },
+      {
+        "path": "capnp_packed/full_materialize",
+        "label": "Cap\u2019n Proto packed custom profile full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 3732.608158504442,
+          "point": 3737.964105278558,
+          "upper": 3743.597215904773
+        }
+      },
+      {
+        "path": "dannypack/full_materialize",
+        "label": "DannyPack custom reference full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 2052.8715625723703,
+          "point": 2056.942104752475,
+          "upper": 2060.8710767170437
+        }
+      },
+      {
+        "path": "notepack/full_materialize",
+        "label": "Notepack custom reference full materialization",
+        "contract": "complete owned event",
+        "interval": {
+          "lower": 3749.790953791152,
+          "point": 3754.2158895345055,
+          "upper": 3758.940860549924
+        }
+      }
+    ]
+  }
+}

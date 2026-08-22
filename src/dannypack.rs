@@ -42,34 +42,15 @@ const HEX_LUT_LOWER: [u8; 256] = {
     t
 };
 
-const HEX_PAIR_LUT: [u16; 256] = {
-    let mut t = [0u16; 256];
-    let chars = b"0123456789abcdef";
-    let mut i = 0;
-    while i < 256 {
-        let hi = chars[i >> 4];
-        let lo = chars[i & 0xF];
-        // We want memory to be [hi, lo].
-        // On LE machine, u16 = hi | (lo << 8).
-        // On BE machine, u16 = (hi << 8) | lo.
-        // We assume LE for simplicity or use to_le_bytes logic if we write as bytes.
-        // But ptr::write_unaligned takes value.
-        // Let's construct LE value and use to_le if needed, or just construct for LE.
-        // Most targets are LE.
-        t[i] = (hi as u16) | ((lo as u16) << 8);
-        i += 1;
-    }
-    t
-};
-
 #[inline(always)]
 unsafe fn hex_encode_fast(src: &[u8], dst: *mut u8) -> usize {
+    const CHARS: &[u8; 16] = b"0123456789abcdef";
     let len = src.len();
     let mut i = 0;
     while i < len {
         let b = *src.get_unchecked(i);
-        let pair = *HEX_PAIR_LUT.get_unchecked(b as usize);
-        ptr::write_unaligned(dst.add(i * 2) as *mut u16, pair);
+        *dst.add(i * 2) = *CHARS.get_unchecked((b >> 4) as usize);
+        *dst.add(i * 2 + 1) = *CHARS.get_unchecked((b & 0x0f) as usize);
         i += 1;
     }
     len * 2
@@ -101,11 +82,17 @@ unsafe fn read_varint_ptr(src: *const u8, max_len: usize) -> (u64, usize) {
         }
         let byte = *src.add(pos);
         pos += 1;
+        if shift == 63 && byte > 1 {
+            return (0, 0);
+        }
         result |= ((byte & 0x7F) as u64) << shift;
         if byte & 0x80 == 0 {
             break;
         }
         shift += 7;
+        if shift >= 64 {
+            return (0, 0);
+        }
     }
     (result, pos)
 }
@@ -124,6 +111,9 @@ unsafe fn write_len_flag_ptr(dst: *mut u8, len: usize, is_hex: bool) -> usize {
 
 #[inline(always)]
 unsafe fn read_len_flag_ptr(src: *const u8, max_len: usize) -> (usize, bool, usize) {
+    if max_len == 0 {
+        return (0, false, 0);
+    }
     let header = *src;
     let is_hex = (header & 0x80) != 0;
     let len_or_marker = (header & 0x7F) as usize;
@@ -131,7 +121,14 @@ unsafe fn read_len_flag_ptr(src: *const u8, max_len: usize) -> (usize, bool, usi
         (len_or_marker, is_hex, 1)
     } else {
         let (len, varint_bytes) = read_varint_ptr(src.add(1), max_len - 1);
-        (len as usize, is_hex, 1 + varint_bytes)
+        let Ok(len) = usize::try_from(len) else {
+            return (0, false, 0);
+        };
+        if varint_bytes == 0 {
+            (0, false, 0)
+        } else {
+            (len, is_hex, 1 + varint_bytes)
+        }
     }
 }
 
@@ -215,6 +212,10 @@ const fn varint_size(mut value: u64) -> usize {
 }
 
 pub fn serialize(event: &NostrEvent, buf: &mut Vec<u8>) {
+    assert!(
+        event.tags.iter().all(|tag| tag.len() <= u8::MAX as usize),
+        "DannyPack supports at most 255 values per tag"
+    );
     let max_tags_size = calc_max_tags_size(&event.tags);
     let content_len = event.content.len();
     let estimated = FIXED_SIZE + 5 + max_tags_size + 5 + content_len;
@@ -393,7 +394,7 @@ pub fn deserialize_into(data: &[u8], event: &mut NostrEvent) -> Result<(), Danny
             return Err(DannyPackError::TooShort);
         }
         ptr = ptr.add(varint_bytes);
-        let tag_len = tag_len as usize;
+        let tag_len = usize::try_from(tag_len).map_err(|_| DannyPackError::InvalidVarint)?;
 
         let remaining = len - (ptr.offset_from(base) as usize);
         if tag_len > remaining {
@@ -405,15 +406,23 @@ pub fn deserialize_into(data: &[u8], event: &mut NostrEvent) -> Result<(), Danny
 
         let remaining = len - (ptr.offset_from(base) as usize);
         let (content_len, content_is_hex, header_bytes) = read_len_flag_ptr(ptr, remaining);
+        if header_bytes == 0 {
+            return Err(DannyPackError::InvalidVarint);
+        }
         ptr = ptr.add(header_bytes);
 
         let remaining = len - (ptr.offset_from(base) as usize);
         if content_len > remaining {
             return Err(DannyPackError::TooShort);
         }
+        if content_len != remaining {
+            return Err(DannyPackError::TrailingData);
+        }
 
         if content_is_hex {
-            let required = content_len * 2;
+            let required = content_len
+                .checked_mul(2)
+                .ok_or(DannyPackError::InvalidVarint)?;
             event.content.clear();
             event.content.reserve(required);
             let vec = event.content.as_mut_vec();
@@ -423,6 +432,7 @@ pub fn deserialize_into(data: &[u8], event: &mut NostrEvent) -> Result<(), Danny
                 vec.as_mut_ptr(),
             );
         } else {
+            std::str::from_utf8(std::slice::from_raw_parts(ptr, content_len))?;
             event.content.clear();
             event.content.reserve(content_len);
             let vec = event.content.as_mut_vec();
@@ -452,7 +462,10 @@ unsafe fn unpack_tags_into(
         return Err(DannyPackError::InvalidTagData);
     }
     pos += varint_bytes;
-    let tag_count = tag_count as usize;
+    let tag_count = usize::try_from(tag_count).map_err(|_| DannyPackError::InvalidVarint)?;
+    if tag_count > max_len {
+        return Err(DannyPackError::InvalidTagData);
+    }
 
     if tags.capacity() < tag_count {
         tags.reserve(tag_count - tags.len());
@@ -482,16 +495,19 @@ unsafe fn unpack_tags_into(
         for j in 0..value_count {
             let remaining = max_len - pos;
             let (len, is_hex, header_bytes) = read_len_flag_ptr(ptr.add(pos), remaining);
+            if header_bytes == 0 {
+                return Err(DannyPackError::InvalidVarint);
+            }
             pos += header_bytes;
 
-            if pos + len > max_len {
+            if len > max_len - pos {
                 return Err(DannyPackError::InvalidTagData);
             }
 
             let s = values.get_unchecked_mut(j);
 
             if is_hex {
-                let required = len * 2;
+                let required = len.checked_mul(2).ok_or(DannyPackError::InvalidVarint)?;
                 s.clear();
                 s.reserve(required);
                 let vec = s.as_mut_vec();
@@ -501,6 +517,7 @@ unsafe fn unpack_tags_into(
                     vec.as_mut_ptr(),
                 );
             } else {
+                std::str::from_utf8(std::slice::from_raw_parts(ptr.add(pos), len))?;
                 s.clear();
                 s.reserve(len);
                 let vec = s.as_mut_vec();
@@ -549,6 +566,10 @@ pub fn deserialize_batch(data: &[u8]) -> Result<Vec<NostrEvent>, DannyPackError>
         let event_count = u32::from_le_bytes(*(ptr as *const [u8; 4])) as usize;
         ptr = ptr.add(4);
 
+        if event_count > (len - 4) / 4 {
+            return Err(DannyPackError::TooShort);
+        }
+
         let mut events = Vec::with_capacity(event_count);
 
         for _ in 0..event_count {
@@ -569,6 +590,9 @@ pub fn deserialize_batch(data: &[u8]) -> Result<Vec<NostrEvent>, DannyPackError>
             ptr = ptr.add(event_len);
         }
 
+        if ptr.offset_from(base) as usize != len {
+            return Err(DannyPackError::TrailingData);
+        }
         Ok(events)
     }
 }
@@ -583,6 +607,9 @@ pub enum DannyPackError {
 
     #[error("Invalid varint")]
     InvalidVarint,
+
+    #[error("Trailing data")]
+    TrailingData,
 
     #[error("UTF-8 error: {0}")]
     Utf8(#[from] std::str::Utf8Error),

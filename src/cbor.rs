@@ -8,7 +8,9 @@
 use ciborium::value::Value;
 use serde::{Deserialize, Serialize};
 
+use crate::encoding::decode_lower_hex;
 use crate::event::NostrEvent;
+use crate::positional::{EventOwned, EventRef, EventsRef, PositionalError};
 
 // ============================================
 // Variant 1: Schemaless (JSON-like)
@@ -108,102 +110,36 @@ pub mod packed {
     use super::*;
 
     pub fn serialize(event: &NostrEvent) -> Vec<u8> {
-        let value = Value::Array(vec![
-            Value::Bytes(event.id.to_vec()),
-            Value::Bytes(event.pubkey.to_vec()),
-            Value::Integer(event.created_at.into()),
-            Value::Integer(event.kind.into()),
-            tags_to_value(&event.tags),
-            Value::Text(event.content.clone()),
-            Value::Bytes(event.sig.to_vec()),
-        ]);
-
         let mut buf = Vec::new();
-        ciborium::into_writer(&value, &mut buf).expect("CBOR serialization should not fail");
+        ciborium::into_writer(&EventRef::from(event), &mut buf)
+            .expect("CBOR serialization should not fail");
         buf
     }
 
     pub fn deserialize(data: &[u8]) -> Result<NostrEvent, CborError> {
-        let value: Value = ciborium::from_reader(data)?;
-
-        let arr = value.as_array().ok_or(CborError::ExpectedArray)?;
-        if arr.len() != 7 {
-            return Err(CborError::InvalidLength("event array"));
-        }
-
-        let id = extract_bytes(&arr[0], "id")?;
-        let pubkey = extract_bytes(&arr[1], "pubkey")?;
-        let created_at = extract_i64(&arr[2], "created_at")?;
-        let kind = extract_u16(&arr[3], "kind")?;
-        let tags = extract_tags(&arr[4])?;
-        let content = extract_string(&arr[5], "content")?;
-        let sig = extract_bytes(&arr[6], "sig")?;
-
-        Ok(NostrEvent {
-            id: id.try_into().map_err(|_| CborError::InvalidLength("id"))?,
-            pubkey: pubkey
-                .try_into()
-                .map_err(|_| CborError::InvalidLength("pubkey"))?,
-            created_at,
-            kind,
-            tags,
-            content,
-            sig: sig
-                .try_into()
-                .map_err(|_| CborError::InvalidLength("sig"))?,
-        })
+        let event: EventOwned = ciborium::from_reader(data)?;
+        event.try_into().map_err(profile_error)
     }
 
     pub fn serialize_batch(events: &[NostrEvent]) -> Vec<u8> {
-        let values: Vec<Value> = events
-            .iter()
-            .map(|e| {
-                Value::Array(vec![
-                    Value::Bytes(e.id.to_vec()),
-                    Value::Bytes(e.pubkey.to_vec()),
-                    Value::Integer(e.created_at.into()),
-                    Value::Integer(e.kind.into()),
-                    tags_to_value(&e.tags),
-                    Value::Text(e.content.clone()),
-                    Value::Bytes(e.sig.to_vec()),
-                ])
-            })
-            .collect();
-
         let mut buf = Vec::new();
-        ciborium::into_writer(&Value::Array(values), &mut buf)
+        ciborium::into_writer(&EventsRef(events), &mut buf)
             .expect("CBOR serialization should not fail");
         buf
     }
 
     pub fn deserialize_batch(data: &[u8]) -> Result<Vec<NostrEvent>, CborError> {
-        let value: Value = ciborium::from_reader(data)?;
-        let arr = value.as_array().ok_or(CborError::ExpectedArray)?;
-
-        arr.iter()
-            .map(|v| {
-                let arr = v.as_array().ok_or(CborError::ExpectedArray)?;
-                if arr.len() != 7 {
-                    return Err(CborError::InvalidLength("event array"));
-                }
-
-                Ok(NostrEvent {
-                    id: extract_bytes(&arr[0], "id")?
-                        .try_into()
-                        .map_err(|_| CborError::InvalidLength("id"))?,
-                    pubkey: extract_bytes(&arr[1], "pubkey")?
-                        .try_into()
-                        .map_err(|_| CborError::InvalidLength("pubkey"))?,
-                    created_at: extract_i64(&arr[2], "created_at")?,
-                    kind: extract_u16(&arr[3], "kind")?,
-                    tags: extract_tags(&arr[4])?,
-                    content: extract_string(&arr[5], "content")?,
-                    sig: extract_bytes(&arr[6], "sig")?
-                        .try_into()
-                        .map_err(|_| CborError::InvalidLength("sig"))?,
-                })
-            })
+        let events: Vec<EventOwned> = ciborium::from_reader(data)?;
+        events
+            .into_iter()
+            .map(|event| event.try_into().map_err(profile_error))
             .collect()
+    }
+
+    fn profile_error(error: PositionalError) -> CborError {
+        match error {
+            PositionalError::InvalidLength(field) => CborError::InvalidLength(field),
+        }
     }
 }
 
@@ -426,9 +362,7 @@ pub mod packed_no_hex_opt {
     fn tags_to_value_no_opt(tags: &[Vec<String>]) -> Value {
         Value::Array(
             tags.iter()
-                .map(|tag| {
-                    Value::Array(tag.iter().map(|v| Value::Text(v.clone())).collect())
-                })
+                .map(|tag| Value::Array(tag.iter().map(|v| Value::Text(v.clone())).collect()))
                 .collect(),
         )
     }
@@ -456,11 +390,6 @@ pub mod packed_no_hex_opt {
 // Helper functions
 // ============================================
 
-/// Check if a string contains only hex characters (0-9, a-f, A-F)
-fn is_hex_string(s: &str) -> bool {
-    s.chars().all(|c| c.is_ascii_hexdigit())
-}
-
 /// Encode a tag value optimally: if it's hex, decode to bytes (50% size reduction),
 /// otherwise store as text.
 ///
@@ -469,11 +398,8 @@ fn is_hex_string(s: &str) -> bool {
 /// - Public keys in `p` tags are 64-char hex → 32 bytes (50% savings)
 /// - Many relay URLs and other values are NOT hex and stored as-is
 fn encode_tag_value_cbor(value: &str) -> Value {
-    if is_hex_string(value) && value.len().is_multiple_of(2) {
-        // Try to decode as hex - if successful, store as bytes
-        if let Ok(bytes) = hex::decode(value) {
-            return Value::Bytes(bytes);
-        }
+    if let Some(bytes) = decode_lower_hex(value) {
+        return Value::Bytes(bytes);
     }
     // Store as text
     Value::Text(value.to_string())

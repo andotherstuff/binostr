@@ -10,7 +10,23 @@ use flate2::Compression;
 
 use crate::config;
 use crate::event::{NostrEvent, SizeCategory, TagCategory};
-use crate::{capnp, cbor, dannypack, json, notepack, proto};
+use crate::validation::{self, EventLimits};
+use crate::{
+    avro, beve, bincode, bson, capnp, cbor, dannypack, flatbuffers, flexbuffers, json, msgpack,
+    notepack, postcard, proto, thrift_compact,
+};
+
+/// Whether a format is a plausible interoperable SDK wire format or a measured reference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FormatClass {
+    NostrBaseline,
+    InteroperableCandidate,
+    EmergingReference,
+    StandardEnvelopeCustomProfile,
+    RustReference,
+    CustomReference,
+    LegacyProfile,
+}
 
 /// Serialization format identifier
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -19,6 +35,15 @@ pub enum Format {
     CborSchemaless,
     CborPacked,
     CborIntKey,
+    MessagePack,
+    FlatBuffers,
+    FlexBuffers,
+    Avro,
+    Bson,
+    ThriftCompact,
+    Beve,
+    Bincode,
+    Postcard,
     ProtoString,
     ProtoBinary,
     CapnProto,
@@ -35,6 +60,15 @@ impl Format {
             Format::CborSchemaless,
             Format::CborPacked,
             Format::CborIntKey,
+            Format::MessagePack,
+            Format::FlatBuffers,
+            Format::FlexBuffers,
+            Format::Avro,
+            Format::Bson,
+            Format::ThriftCompact,
+            Format::Beve,
+            Format::Bincode,
+            Format::Postcard,
             Format::ProtoString,
             Format::ProtoBinary,
             Format::CapnProto,
@@ -65,6 +99,15 @@ impl Format {
             Format::CborSchemaless => "cbor_schemaless",
             Format::CborPacked => "cbor_packed",
             Format::CborIntKey => "cbor_intkey",
+            Format::MessagePack => "msgpack",
+            Format::FlatBuffers => "flatbuffers",
+            Format::FlexBuffers => "flexbuffers",
+            Format::Avro => "avro",
+            Format::Bson => "bson",
+            Format::ThriftCompact => "thrift_compact",
+            Format::Beve => "beve",
+            Format::Bincode => "bincode",
+            Format::Postcard => "postcard",
             Format::ProtoString => "proto_string",
             Format::ProtoBinary => "proto_binary",
             Format::CapnProto => "capnp",
@@ -80,6 +123,15 @@ impl Format {
             Format::CborSchemaless => "CBOR Schemaless",
             Format::CborPacked => "CBOR Packed",
             Format::CborIntKey => "CBOR IntKey",
+            Format::MessagePack => "MessagePack",
+            Format::FlatBuffers => "FlatBuffers",
+            Format::FlexBuffers => "FlexBuffers",
+            Format::Avro => "Avro Binary Datum",
+            Format::Bson => "BSON",
+            Format::ThriftCompact => "Thrift Compact",
+            Format::Beve => "BEVE",
+            Format::Bincode => "bincode",
+            Format::Postcard => "postcard",
             Format::ProtoString => "Proto String",
             Format::ProtoBinary => "Proto Binary",
             Format::CapnProto => "Cap'n Proto",
@@ -95,12 +147,44 @@ impl Format {
             Format::CborSchemaless => "cbor_schema",
             Format::CborPacked => "cbor_packed",
             Format::CborIntKey => "cbor_intkey",
+            Format::MessagePack => "msgpack",
+            Format::FlatBuffers => "flatbuffers",
+            Format::FlexBuffers => "flexbuffers",
+            Format::Avro => "avro",
+            Format::Bson => "bson",
+            Format::ThriftCompact => "thrift",
+            Format::Beve => "beve",
+            Format::Bincode => "bincode",
+            Format::Postcard => "postcard",
             Format::ProtoString => "proto_str",
             Format::ProtoBinary => "proto_bin",
             Format::CapnProto => "capnp",
             Format::CapnProtoPacked => "capnp_pk",
             Format::DannyPack => "dannypack",
             Format::Notepack => "notepack",
+        }
+    }
+
+    pub fn class(&self) -> FormatClass {
+        match self {
+            Format::Json => FormatClass::NostrBaseline,
+            Format::CborPacked
+            | Format::MessagePack
+            | Format::ProtoBinary
+            | Format::FlatBuffers
+            | Format::FlexBuffers
+            | Format::Avro
+            | Format::Bson
+            | Format::ThriftCompact => FormatClass::InteroperableCandidate,
+            Format::Beve => FormatClass::EmergingReference,
+            Format::CapnProto | Format::CapnProtoPacked => {
+                FormatClass::StandardEnvelopeCustomProfile
+            }
+            Format::Bincode | Format::Postcard => FormatClass::RustReference,
+            Format::DannyPack | Format::Notepack => FormatClass::CustomReference,
+            Format::CborSchemaless | Format::CborIntKey | Format::ProtoString => {
+                FormatClass::LegacyProfile
+            }
         }
     }
 }
@@ -112,6 +196,15 @@ pub fn serialize(event: &NostrEvent, format: Format) -> Vec<u8> {
         Format::CborSchemaless => cbor::schemaless::serialize(event),
         Format::CborPacked => cbor::packed::serialize(event),
         Format::CborIntKey => cbor::intkey::serialize(event),
+        Format::MessagePack => msgpack::serialize(event),
+        Format::FlatBuffers => flatbuffers::serialize(event),
+        Format::FlexBuffers => flexbuffers::serialize(event),
+        Format::Avro => avro::serialize(event),
+        Format::Bson => bson::serialize(event),
+        Format::ThriftCompact => thrift_compact::serialize(event),
+        Format::Beve => beve::serialize(event),
+        Format::Bincode => bincode::serialize(event),
+        Format::Postcard => postcard::serialize(event),
         Format::ProtoString => proto::string::serialize(event),
         Format::ProtoBinary => proto::binary::serialize(event),
         Format::CapnProto => capnp::serialize_event(event),
@@ -132,12 +225,85 @@ pub fn serialize_batch(events: &[NostrEvent], format: Format) -> Vec<u8> {
         Format::CborSchemaless => cbor::schemaless::serialize_batch(events),
         Format::CborPacked => cbor::packed::serialize_batch(events),
         Format::CborIntKey => cbor::intkey::serialize_batch(events),
+        Format::MessagePack => msgpack::serialize_batch(events),
+        Format::FlatBuffers => flatbuffers::serialize_batch(events),
+        Format::FlexBuffers => flexbuffers::serialize_batch(events),
+        Format::Avro => avro::serialize_batch(events),
+        Format::Bson => bson::serialize_batch(events),
+        Format::ThriftCompact => thrift_compact::serialize_batch(events),
+        Format::Beve => beve::serialize_batch(events),
+        Format::Bincode => bincode::serialize_batch(events),
+        Format::Postcard => postcard::serialize_batch(events),
         Format::ProtoString => proto::string::serialize_batch(events),
         Format::ProtoBinary => proto::binary::serialize_batch(events),
         Format::CapnProto => capnp::serialize_batch(events),
         Format::CapnProtoPacked => capnp::serialize_batch_packed(events),
         Format::DannyPack => dannypack::serialize_batch(events),
         Format::Notepack => notepack::serialize_batch(events),
+    }
+}
+
+/// Deserialize an event using the specified format.
+pub fn deserialize(data: &[u8], format: Format) -> Result<NostrEvent, String> {
+    match format {
+        Format::Json => json::deserialize(data).map_err(|e| e.to_string()),
+        Format::CborSchemaless => cbor::schemaless::deserialize(data).map_err(|e| e.to_string()),
+        Format::CborPacked => cbor::packed::deserialize(data).map_err(|e| e.to_string()),
+        Format::CborIntKey => cbor::intkey::deserialize(data).map_err(|e| e.to_string()),
+        Format::MessagePack => msgpack::deserialize(data).map_err(|e| e.to_string()),
+        Format::FlatBuffers => flatbuffers::deserialize(data).map_err(|e| e.to_string()),
+        Format::FlexBuffers => flexbuffers::deserialize(data).map_err(|e| e.to_string()),
+        Format::Avro => avro::deserialize(data).map_err(|e| e.to_string()),
+        Format::Bson => bson::deserialize(data).map_err(|e| e.to_string()),
+        Format::ThriftCompact => thrift_compact::deserialize(data).map_err(|e| e.to_string()),
+        Format::Beve => beve::deserialize(data).map_err(|e| e.to_string()),
+        Format::Bincode => bincode::deserialize(data).map_err(|e| e.to_string()),
+        Format::Postcard => postcard::deserialize(data).map_err(|e| e.to_string()),
+        Format::ProtoString => proto::string::deserialize(data).map_err(|e| e.to_string()),
+        Format::ProtoBinary => proto::binary::deserialize(data).map_err(|e| e.to_string()),
+        Format::CapnProto => capnp::deserialize_event(data).map_err(|e| e.to_string()),
+        Format::CapnProtoPacked => capnp::deserialize_event_packed(data).map_err(|e| e.to_string()),
+        Format::DannyPack => dannypack::deserialize(data).map_err(|e| e.to_string()),
+        Format::Notepack => notepack::deserialize(data).map_err(|e| e.to_string()),
+    }
+}
+
+/// Decode with an outer wire-size bound and post-decode structural bounds.
+pub fn deserialize_limited(
+    data: &[u8],
+    format: Format,
+    limits: &EventLimits,
+) -> Result<NostrEvent, String> {
+    validation::check_wire_size(data, limits).map_err(|error| error.to_string())?;
+    let event = deserialize(data, format)?;
+    validation::check_structure(&event, limits).map_err(|error| error.to_string())?;
+    Ok(event)
+}
+
+/// Deserialize a batch using the specified format.
+pub fn deserialize_batch(data: &[u8], format: Format) -> Result<Vec<NostrEvent>, String> {
+    match format {
+        Format::Json => json::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::CborSchemaless => {
+            cbor::schemaless::deserialize_batch(data).map_err(|e| e.to_string())
+        }
+        Format::CborPacked => cbor::packed::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::CborIntKey => cbor::intkey::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::MessagePack => msgpack::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::FlatBuffers => flatbuffers::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::FlexBuffers => flexbuffers::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::Avro => avro::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::Bson => bson::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::ThriftCompact => thrift_compact::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::Beve => beve::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::Bincode => bincode::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::Postcard => postcard::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::ProtoString => proto::string::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::ProtoBinary => proto::binary::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::CapnProto => capnp::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::CapnProtoPacked => capnp::deserialize_batch_packed(data).map_err(|e| e.to_string()),
+        Format::DannyPack => dannypack::deserialize_batch(data).map_err(|e| e.to_string()),
+        Format::Notepack => notepack::deserialize_batch(data).map_err(|e| e.to_string()),
     }
 }
 
@@ -331,7 +497,7 @@ impl DistributionAnalysis {
 
     pub fn top_kinds(&self, n: usize) -> Vec<(u16, usize)> {
         let mut kinds: Vec<_> = self.by_kind.iter().map(|(&k, &v)| (k, v)).collect();
-        kinds.sort_by(|a, b| b.1.cmp(&a.1));
+        kinds.sort_by_key(|item| std::cmp::Reverse(item.1));
         kinds.truncate(n);
         kinds
     }
@@ -450,7 +616,7 @@ mod tests {
         // Use _all variant to test all formats regardless of config
         let stats = compute_size_stats_all(&event);
 
-        assert_eq!(stats.len(), 10);
+        assert_eq!(stats.len(), Format::all().len());
 
         // All formats should produce non-zero sizes
         for stat in &stats {

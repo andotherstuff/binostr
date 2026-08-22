@@ -14,6 +14,7 @@ use capnp::message::{Builder, ReaderOptions};
 use capnp::serialize;
 use capnp::serialize_packed;
 
+use crate::encoding::decode_lower_hex;
 use crate::event::NostrEvent;
 
 // Include the generated Cap'n Proto code
@@ -55,19 +56,11 @@ fn unpack_fixed_data(data: &[u8]) -> Result<([u8; 32], [u8; 32], [u8; 64], i64, 
     Ok((id, pubkey, sig, created_at, kind))
 }
 
-/// Check if a string contains only hex characters (0-9, a-f, A-F)
-fn is_hex_string(s: &str) -> bool {
-    s.chars().all(|c| c.is_ascii_hexdigit())
-}
-
 /// Encode a tag value optimally: if it's hex, decode to bytes (50% size reduction),
 /// otherwise store as UTF-8 bytes
 fn encode_tag_value(value: &str) -> (bool, Vec<u8>) {
-    if is_hex_string(value) && value.len().is_multiple_of(2) {
-        // Try to decode as hex - if successful, store as hex bytes
-        if let Ok(bytes) = hex::decode(value) {
-            return (true, bytes);
-        }
+    if let Some(bytes) = decode_lower_hex(value) {
+        return (true, bytes);
     }
     // Store as raw UTF-8 bytes
     (false, value.as_bytes().to_vec())

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "event_count": 1000,
+  "seed": 4776434982410539521,
+  "corpus_id_sha256": "a05ceb17de26aca15c5b284652a6e55188b0c5a135fb89839459d9d93ae492f5",
+  "formats": {
+    "avro": {
+      "encode_allocations_per_event": 132.959,
+      "encode_allocated_bytes_per_event": 14866.719,
+      "decode_allocations_per_event": 149.588,
+      "decode_allocated_bytes_per_event": 10034.088
+    },
+    "beve": {
+      "encode_allocations_per_event": 79.374,
+      "encode_allocated_bytes_per_event": 7076.382,
+      "decode_allocations_per_event": 92.23,
+      "decode_allocated_bytes_per_event": 4797.192
+    },
+    "bincode": {
+      "encode_allocations_per_event": 20.63,
+      "encode_allocated_bytes_per_event": 6363.16,
+      "decode_allocations_per_event": 89.23,
+      "decode_allocated_bytes_per_event": 4669.192
+    },
+    "bson": {
+      "encode_allocations_per_event": 174.485,
+      "encode_allocated_bytes_per_event": 19197.407,
+      "decode_allocations_per_event": 176.098,
+      "decode_allocated_bytes_per_event": 31161.396
+    },
+    "capnp_packed": {
+      "encode_allocations_per_event": 50.083,
+      "encode_allocated_bytes_per_event": 18534.352,
+      "decode_allocations_per_event": 71.601,
+      "decode_allocated_bytes_per_event": 5748.045
+    },
+    "cbor_packed": {
+      "encode_allocations_per_event": 20.63,
+      "encode_allocated_bytes_per_event": 6444.636,
+      "decode_allocations_per_event": 92.23,
+      "decode_allocated_bytes_per_event": 5220.89
+    },
+    "dannypack": {
+      "encode_allocations_per_event": 1.001,
+      "encode_allocated_bytes_per_event": 2317.234,
+      "decode_allocations_per_event": 69.601,
+      "decode_allocated_bytes_per_event": 4154.547
+    },
+    "flatbuffers": {
+      "encode_allocations_per_event": 46.409,
+      "encode_allocated_bytes_per_event": 12224.324,
+      "decode_allocations_per_event": 69.601,
+      "decode_allocated_bytes_per_event": 5876.789
+    },
+    "flexbuffers": {
+      "encode_allocations_per_event": 22.63,
+      "encode_allocated_bytes_per_event": 8260.172,
+      "decode_allocations_per_event": 92.23,
+      "decode_allocated_bytes_per_event": 4797.192
+    },
+    "json": {
+      "encode_allocations_per_event": 73.601,
+      "encode_allocated_bytes_per_event": 11640.005,
+      "decode_allocations_per_event": 75.987,
+      "decode_allocated_bytes_per_event": 7523.882
+    },
+    "msgpack": {
+      "encode_allocations_per_event": 20.63,
+      "encode_allocated_bytes_per_event": 6444.744,
+      "decode_allocations_per_event": 92.23,
+      "decode_allocated_bytes_per_event": 4797.192
+    },
+    "notepack": {
+      "encode_allocations_per_event": 1.001,
+      "encode_allocated_bytes_per_event": 2371.018,
+      "decode_allocations_per_event": 69.601,
+      "decode_allocated_bytes_per_event": 5878.193
+    },
+    "postcard": {
+      "encode_allocations_per_event": 20.63,
+      "encode_allocated_bytes_per_event": 6362.136,
+      "decode_allocations_per_event": 89.23,
+      "decode_allocated_bytes_per_event": 4669.192
+    },
+    "proto_binary": {
+      "encode_allocations_per_event": 73.601,
+      "encode_allocated_bytes_per_event": 6534.29,
+      "decode_allocations_per_event": 114.859,
+      "decode_allocated_bytes_per_event": 9544.822
+    },
+    "thrift_compact": {
+      "encode_allocations_per_event": 99.885,
+      "encode_allocated_bytes_per_event": 6903.677,
+      "decode_allocations_per_event": 93.23,
+      "decode_allocated_bytes_per_event": 4733.936
+    }
+  }
+}

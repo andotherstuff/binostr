@@ -1,0 +1,222 @@
+{
+  "schema_version": 2,
+  "metadata": {
+    "exported_utc": "2026-08-21T23:15:07Z",
+    "benchmark_estimates_completed_utc": "2026-08-21T23:15:01Z",
+    "git_commit": "0251b60ab9aea1d804a45b5f14ec62a46ff651b3",
+    "git_dirty": true,
+    "rustc": "rustc 1.96.1 (31fca3adb 2026-06-26) (Homebrew)",
+    "host": "Darwin 25.6.0 arm64; Apple M4 Max",
+    "run_count": 1,
+    "power_and_thermal_state": "not recorded"
+  },
+  "command": "BINOSTR_PUBLICATION_BENCH=1 cargo bench --bench validated -- --noplot",
+  "event_count": 1000,
+  "seed": 4776434982410539521,
+  "corpus_id_sha256": "a05ceb17de26aca15c5b284652a6e55188b0c5a135fb89839459d9d93ae492f5",
+  "criterion": {
+    "samples": 100,
+    "warmup_ms": 5000,
+    "measurement_seconds": 10,
+    "confidence": 0.95,
+    "noise_threshold": 0.01
+  },
+  "units": "nanoseconds_per_event",
+  "measurements": [
+    {
+      "key": "json",
+      "decode_id": {
+        "lower": 9810.137570795454,
+        "point": 9823.49852181818,
+        "upper": 9836.593710909086
+      },
+      "validated": {
+        "lower": 28069.203977,
+        "point": 28109.88636,
+        "upper": 28152.0386680625
+      }
+    },
+    {
+      "key": "cbor_packed",
+      "decode_id": {
+        "lower": 11475.486745999999,
+        "point": 11487.463658888893,
+        "upper": 11500.242366583336
+      },
+      "validated": {
+        "lower": 29735.892809999998,
+        "point": 29779.29562,
+        "upper": 29827.67442275
+      }
+    },
+    {
+      "key": "msgpack",
+      "decode_id": {
+        "lower": 10272.281322899998,
+        "point": 10285.730455000003,
+        "upper": 10299.399724849998
+      },
+      "validated": {
+        "lower": 28417.676788937497,
+        "point": 28455.868844999997,
+        "upper": 28493.8703521875
+      }
+    },
+    {
+      "key": "flatbuffers",
+      "decode_id": {
+        "lower": 11782.045806194443,
+        "point": 11813.607084444446,
+        "upper": 11848.80463222222
+      },
+      "validated": {
+        "lower": 30098.40791,
+        "point": 30186.8294775,
+        "upper": 30282.42679275
+      }
+    },
+    {
+      "key": "flexbuffers",
+      "decode_id": {
+        "lower": 10869.576999900002,
+        "point": 10880.768089999998,
+        "upper": 10892.152729375
+      },
+      "validated": {
+        "lower": 29091.007907875002,
+        "point": 29199.19709,
+        "upper": 29359.0538626875
+      }
+    },
+    {
+      "key": "avro",
+      "decode_id": {
+        "lower": 12249.938606666674,
+        "point": 12264.238241111114,
+        "upper": 12279.850173805553
+      },
+      "validated": {
+        "lower": 30498.338917875,
+        "point": 30549.7525125,
+        "upper": 30606.8745051875
+      }
+    },
+    {
+      "key": "bson",
+      "decode_id": {
+        "lower": 16115.669992642857,
+        "point": 16133.596605714283,
+        "upper": 16152.640443714288
+      },
+      "validated": {
+        "lower": 34504.52617525,
+        "point": 34560.66418000001,
+        "upper": 34624.87589525
+      }
+    },
+    {
+      "key": "thrift_compact",
+      "decode_id": {
+        "lower": 10559.048447925,
+        "point": 10581.336623999998,
+        "upper": 10606.792915875
+      },
+      "validated": {
+        "lower": 28715.9217779375,
+        "point": 28748.1027175,
+        "upper": 28780.8100959375
+      }
+    },
+    {
+      "key": "beve",
+      "decode_id": {
+        "lower": 11473.133010472224,
+        "point": 11485.407357777774,
+        "upper": 11498.25990419444
+      },
+      "validated": {
+        "lower": 29675.4588169375,
+        "point": 29704.512609999998,
+        "upper": 29733.833236125
+      }
+    },
+    {
+      "key": "bincode",
+      "decode_id": {
+        "lower": 10133.442465350001,
+        "point": 10147.260952000004,
+        "upper": 10162.847708
+      },
+      "validated": {
+        "lower": 28280.639789375,
+        "point": 28330.76573,
+        "upper": 28385.1840801875
+      }
+    },
+    {
+      "key": "postcard",
+      "decode_id": {
+        "lower": 10122.541519925006,
+        "point": 10135.790501000001,
+        "upper": 10151.062826975007
+      },
+      "validated": {
+        "lower": 28290.4213958125,
+        "point": 28328.1238475,
+        "upper": 28367.23947775
+      }
+    },
+    {
+      "key": "proto_binary",
+      "decode_id": {
+        "lower": 11619.275454777782,
+        "point": 11632.061808888888,
+        "upper": 11646.572705666666
+      },
+      "validated": {
+        "lower": 29760.324558375,
+        "point": 29797.7879225,
+        "upper": 29836.351896562497
+      }
+    },
+    {
+      "key": "capnp_packed",
+      "decode_id": {
+        "lower": 9495.90714036364,
+        "point": 9540.072767272724,
+        "upper": 9587.867644977276
+      },
+      "validated": {
+        "lower": 27549.705619187498,
+        "point": 27588.1527175,
+        "upper": 27630.930135125
+      }
+    },
+    {
+      "key": "dannypack",
+      "decode_id": {
+        "lower": 7611.100379375001,
+        "point": 7619.94279857143,
+        "upper": 7629.735982642862
+      },
+      "validated": {
+        "lower": 25721.1973251875,
+        "point": 25761.6485375,
+        "upper": 25806.633052375
+      }
+    },
+    {
+      "key": "notepack",
+      "decode_id": {
+        "lower": 9379.257660545454,
+        "point": 9393.664958181818,
+        "upper": 9409.425693250005
+      },
+      "validated": {
+        "lower": 27544.0619976875,
+        "point": 27584.3862275,
+        "upper": 27629.3519034375
+      }
+    }
+  ]
+}

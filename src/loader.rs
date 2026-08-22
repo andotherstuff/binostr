@@ -175,15 +175,17 @@ fn proto_to_event(proto: ProtoEvent) -> Result<NostrEvent, LoadError> {
 /// Load events from multiple .pb.gz files
 pub fn load_from_directory<P: AsRef<Path>>(dir: P) -> Result<Vec<NostrEvent>, LoadError> {
     let mut events = Vec::new();
+    let mut files: Vec<_> = std::fs::read_dir(dir)?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .filter(|path| path.extension().is_some_and(|ext| ext == "gz"))
+        .collect();
+    files.sort();
 
-    for entry in std::fs::read_dir(dir)? {
-        let entry = entry?;
-        let path = entry.path();
-
-        if path.extension().is_some_and(|ext| ext == "gz") {
-            let loader = EventLoader::open(&path)?;
-            events.extend(loader.load_all()?);
-        }
+    for path in files {
+        let loader = EventLoader::open(path)?;
+        events.extend(loader.load_all()?);
     }
 
     Ok(events)
@@ -202,6 +204,10 @@ pub fn load_limited_from_directory<P: AsRef<Path>>(
         .collect();
 
     files.sort();
+
+    if files.is_empty() {
+        return Ok(events);
+    }
 
     let per_file = (limit / files.len()).max(1);
 

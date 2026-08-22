@@ -10,8 +10,14 @@ use std::io::{BufWriter, Write};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
-    let input = args.get(1).map(|s| s.as_str()).unwrap_or("data/sample.pb.gz");
-    let output = args.get(2).map(|s| s.as_str()).unwrap_or("data/sample.jsonl");
+    let input = args
+        .get(1)
+        .map(|s| s.as_str())
+        .unwrap_or("data/sample.pb.gz");
+    let output = args
+        .get(2)
+        .map(|s| s.as_str())
+        .unwrap_or("data/sample.jsonl");
 
     println!("Converting {} to {}", input, output);
 
@@ -57,9 +63,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output_size = std::fs::metadata(output)?.len();
 
     println!("\nFile sizes:");
-    println!("  Input:  {:.2} MB (compressed protobuf)", input_size as f64 / 1_000_000.0);
-    println!("  Output: {:.2} MB (JSONL)", output_size as f64 / 1_000_000.0);
+    println!(
+        "  Input:  {:.2} MB (compressed protobuf)",
+        input_size as f64 / 1_000_000.0
+    );
+    println!(
+        "  Output: {:.2} MB (JSONL)",
+        output_size as f64 / 1_000_000.0
+    );
 
     Ok(())
 }
-

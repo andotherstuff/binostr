@@ -1,402 +1,131 @@
-//! Benchmarks by event size and tag count categories
-//!
-//! Tests serialization performance across different event characteristics
-//! to understand how formats scale with event complexity.
+//! Throughput by event-size and tag-count category.
 
+use binostr::event::{SizeCategory, TagCategory};
+use binostr::stats::{self, Format};
+use binostr::{EventSampler, NostrEvent};
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 
 mod common;
 
-use binostr::event::{SizeCategory, TagCategory};
-use binostr::{capnp, cbor, dannypack, json, notepack, proto, EventSampler, NostrEvent};
-
-const DATA_DIR: &str = "data";
 const SAMPLE_SIZE: usize = 100;
 
-/// Load events by size category
-fn load_by_size(category: SizeCategory, count: usize) -> Vec<NostrEvent> {
-    let mut sampler = match EventSampler::from_directory(DATA_DIR, count * 20) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Warning: Could not load events: {}", e);
-            return common::generate_synthetic_events(count);
+fn sampler() -> Option<EventSampler> {
+    match EventSampler::from_directory_seeded(common::DATA_DIR, common::benchmark_seed()) {
+        Ok(value) => Some(value),
+        Err(error) => {
+            eprintln!("Could not load events: {error}");
+            None
         }
-    };
-
-    let events = sampler.sample_size(category, count);
-    if events.is_empty() {
-        eprintln!("Warning: No events found for category {:?}", category);
-        return Vec::new();
     }
-
-    events.into_iter().cloned().collect()
 }
 
-/// Load events by tag category
-fn load_by_tags(category: TagCategory, count: usize) -> Vec<NostrEvent> {
-    let mut sampler = match EventSampler::from_directory(DATA_DIR, count * 20) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Warning: Could not load events: {}", e);
-            return common::generate_synthetic_events(count);
-        }
+fn load_by_size(category: SizeCategory) -> Vec<NostrEvent> {
+    let Some(mut sampler) = sampler() else {
+        return common::generate_synthetic_events(SAMPLE_SIZE);
     };
-
-    let events = sampler.sample_tags(category, count);
-    if events.is_empty() {
-        eprintln!("Warning: No events found for category {:?}", category);
-        return Vec::new();
-    }
-
-    events.into_iter().cloned().collect()
+    sampler
+        .sample_size(category, SAMPLE_SIZE)
+        .into_iter()
+        .cloned()
+        .collect()
 }
 
-/// Benchmark a specific size category
-fn bench_size_category(c: &mut Criterion, category: SizeCategory, name: &str) {
-    let events = load_by_size(category, SAMPLE_SIZE);
+fn load_by_tags(category: TagCategory) -> Vec<NostrEvent> {
+    let Some(mut sampler) = sampler() else {
+        return common::generate_synthetic_events(SAMPLE_SIZE);
+    };
+    sampler
+        .sample_tags(category, SAMPLE_SIZE)
+        .into_iter()
+        .cloned()
+        .collect()
+}
 
+fn bench_events(c: &mut Criterion, group_name: &str, events: &[NostrEvent]) {
     if events.is_empty() {
-        eprintln!("No events for category {}, skipping", name);
         return;
     }
-
-    let group_name = format!("size_{}", name);
-    let mut group = c.benchmark_group(&group_name);
+    let mut group = c.benchmark_group(group_name);
     group.throughput(Throughput::Elements(events.len() as u64));
-
-    // Serialize benchmarks
-    group.bench_function("serialize/json", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(json::serialize(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/cbor_packed", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(cbor::packed::serialize(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/proto_binary", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(proto::binary::serialize(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/capnp", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(capnp::serialize_event(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/dannypack", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(dannypack::serialize_to_vec(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/notepack", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(notepack::serialize(event));
-            }
-        })
-    });
-
-    // Pre-serialize for deserialization benchmarks
-    let json_data: Vec<_> = events.iter().map(json::serialize).collect();
-    let cbor_data: Vec<_> = events.iter().map(cbor::packed::serialize).collect();
-    let proto_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
-    let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
-    let notepack_data: Vec<_> = events.iter().map(notepack::serialize).collect();
-
-    // Deserialize benchmarks
-    group.bench_function("deserialize/json", |b| {
-        b.iter(|| {
-            for data in &json_data {
-                black_box(json::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/cbor_packed", |b| {
-        b.iter(|| {
-            for data in &cbor_data {
-                black_box(cbor::packed::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/proto_binary", |b| {
-        b.iter(|| {
-            for data in &proto_data {
-                black_box(proto::binary::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/capnp", |b| {
-        b.iter(|| {
-            for data in &capnp_data {
-                black_box(capnp::deserialize_event(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/dannypack", |b| {
-        b.iter(|| {
-            for data in &dannypack_data {
-                black_box(dannypack::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/notepack", |b| {
-        b.iter(|| {
-            for data in &notepack_data {
-                black_box(notepack::deserialize(data).unwrap());
-            }
-        })
-    });
-
+    for format in Format::enabled() {
+        group.bench_function(format!("serialize/{}", format.short_name()), |b| {
+            b.iter(|| {
+                for event in events {
+                    black_box(stats::serialize(event, format));
+                }
+            })
+        });
+        let encoded: Vec<_> = events
+            .iter()
+            .map(|event| stats::serialize(event, format))
+            .collect();
+        group.bench_function(format!("deserialize/{}", format.short_name()), |b| {
+            b.iter(|| {
+                for data in &encoded {
+                    black_box(stats::deserialize(data, format).unwrap());
+                }
+            })
+        });
+    }
     group.finish();
 
-    // Print size statistics
-    print_size_stats(&events, &group_name);
-}
-
-/// Benchmark a specific tag category
-fn bench_tag_category(c: &mut Criterion, category: TagCategory, name: &str) {
-    let events = load_by_tags(category, SAMPLE_SIZE);
-
-    if events.is_empty() {
-        eprintln!("No events for category {}, skipping", name);
-        return;
+    let json_total: usize = events
+        .iter()
+        .map(|e| stats::serialize(e, Format::Json).len())
+        .sum();
+    println!("\n=== {group_name} - {} events ===", events.len());
+    for format in Format::enabled() {
+        let total: usize = events
+            .iter()
+            .map(|e| stats::serialize(e, format).len())
+            .sum();
+        println!(
+            "  {:20} {:>7.1} bytes ({:>5.1}%)",
+            format.name(),
+            total as f64 / events.len() as f64,
+            100.0 * total as f64 / json_total as f64
+        );
     }
-
-    let group_name = format!("tags_{}", name);
-    let mut group = c.benchmark_group(&group_name);
-    group.throughput(Throughput::Elements(events.len() as u64));
-
-    // Serialize benchmarks
-    group.bench_function("serialize/json", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(json::serialize(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/cbor_packed", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(cbor::packed::serialize(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/proto_binary", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(proto::binary::serialize(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/capnp", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(capnp::serialize_event(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/dannypack", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(dannypack::serialize_to_vec(event));
-            }
-        })
-    });
-
-    group.bench_function("serialize/notepack", |b| {
-        b.iter(|| {
-            for event in &events {
-                black_box(notepack::serialize(event));
-            }
-        })
-    });
-
-    // Pre-serialize for deserialization benchmarks
-    let json_data: Vec<_> = events.iter().map(json::serialize).collect();
-    let cbor_data: Vec<_> = events.iter().map(cbor::packed::serialize).collect();
-    let proto_data: Vec<_> = events.iter().map(proto::binary::serialize).collect();
-    let capnp_data: Vec<_> = events.iter().map(capnp::serialize_event).collect();
-    let dannypack_data: Vec<_> = events.iter().map(dannypack::serialize_to_vec).collect();
-    let notepack_data: Vec<_> = events.iter().map(notepack::serialize).collect();
-
-    // Deserialize benchmarks
-    group.bench_function("deserialize/json", |b| {
-        b.iter(|| {
-            for data in &json_data {
-                black_box(json::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/cbor_packed", |b| {
-        b.iter(|| {
-            for data in &cbor_data {
-                black_box(cbor::packed::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/proto_binary", |b| {
-        b.iter(|| {
-            for data in &proto_data {
-                black_box(proto::binary::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/capnp", |b| {
-        b.iter(|| {
-            for data in &capnp_data {
-                black_box(capnp::deserialize_event(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/dannypack", |b| {
-        b.iter(|| {
-            for data in &dannypack_data {
-                black_box(dannypack::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.bench_function("deserialize/notepack", |b| {
-        b.iter(|| {
-            for data in &notepack_data {
-                black_box(notepack::deserialize(data).unwrap());
-            }
-        })
-    });
-
-    group.finish();
-
-    // Print size statistics
-    print_size_stats(&events, &group_name);
 }
 
-fn print_size_stats(events: &[NostrEvent], category: &str) {
-    if events.is_empty() {
-        return;
-    }
-
-    let n = events.len();
-
-    let json_total: usize = events.iter().map(|e| json::serialize(e).len()).sum();
-    let cbor_total: usize = events.iter().map(|e| cbor::packed::serialize(e).len()).sum();
-    let proto_total: usize = events.iter().map(|e| proto::binary::serialize(e).len()).sum();
-    let capnp_total: usize = events.iter().map(|e| capnp::serialize_event(e).len()).sum();
-    let dannypack_total: usize = events.iter().map(|e| dannypack::serialize_to_vec(e).len()).sum();
-    let notepack_total: usize = events.iter().map(|e| notepack::serialize(e).len()).sum();
-
-    println!("\n=== {} - {} events ===", category, n);
-    println!("Average sizes:");
-    println!("  JSON:         {:>6} bytes (100.0%)", json_total / n);
-    println!(
-        "  CBOR Packed:  {:>6} bytes ({:>5.1}%)",
-        cbor_total / n,
-        100.0 * cbor_total as f64 / json_total as f64
-    );
-    println!(
-        "  Proto Binary: {:>6} bytes ({:>5.1}%)",
-        proto_total / n,
-        100.0 * proto_total as f64 / json_total as f64
-    );
-    println!(
-        "  Cap'n Proto:  {:>6} bytes ({:>5.1}%)",
-        capnp_total / n,
-        100.0 * capnp_total as f64 / json_total as f64
-    );
-    println!(
-        "  DannyPack:    {:>6} bytes ({:>5.1}%)",
-        dannypack_total / n,
-        100.0 * dannypack_total as f64 / json_total as f64
-    );
-    println!(
-        "  Notepack:     {:>6} bytes ({:>5.1}%)",
-        notepack_total / n,
-        100.0 * notepack_total as f64 / json_total as f64
-    );
+fn bench_size(c: &mut Criterion, category: SizeCategory, name: &str) {
+    bench_events(c, &format!("size_{name}"), &load_by_size(category));
+}
+fn bench_tags(c: &mut Criterion, category: TagCategory, name: &str) {
+    bench_events(c, &format!("tags_{name}"), &load_by_tags(category));
 }
 
-// Size category benchmarks
-fn bench_size_tiny(c: &mut Criterion) {
-    bench_size_category(c, SizeCategory::Tiny, "tiny");
+fn size_tiny(c: &mut Criterion) {
+    bench_size(c, SizeCategory::Tiny, "tiny");
+}
+fn size_small(c: &mut Criterion) {
+    bench_size(c, SizeCategory::Small, "small");
+}
+fn size_medium(c: &mut Criterion) {
+    bench_size(c, SizeCategory::Medium, "medium");
+}
+fn size_large(c: &mut Criterion) {
+    bench_size(c, SizeCategory::Large, "large");
+}
+fn size_huge(c: &mut Criterion) {
+    bench_size(c, SizeCategory::Huge, "huge");
+}
+fn tags_none(c: &mut Criterion) {
+    bench_tags(c, TagCategory::None, "none");
+}
+fn tags_few(c: &mut Criterion) {
+    bench_tags(c, TagCategory::Few, "few");
+}
+fn tags_moderate(c: &mut Criterion) {
+    bench_tags(c, TagCategory::Moderate, "moderate");
+}
+fn tags_many(c: &mut Criterion) {
+    bench_tags(c, TagCategory::Many, "many");
+}
+fn tags_massive(c: &mut Criterion) {
+    bench_tags(c, TagCategory::Massive, "massive");
 }
 
-fn bench_size_small(c: &mut Criterion) {
-    bench_size_category(c, SizeCategory::Small, "small");
-}
-
-fn bench_size_medium(c: &mut Criterion) {
-    bench_size_category(c, SizeCategory::Medium, "medium");
-}
-
-fn bench_size_large(c: &mut Criterion) {
-    bench_size_category(c, SizeCategory::Large, "large");
-}
-
-fn bench_size_huge(c: &mut Criterion) {
-    bench_size_category(c, SizeCategory::Huge, "huge");
-}
-
-// Tag category benchmarks
-fn bench_tags_none(c: &mut Criterion) {
-    bench_tag_category(c, TagCategory::None, "none");
-}
-
-fn bench_tags_few(c: &mut Criterion) {
-    bench_tag_category(c, TagCategory::Few, "few");
-}
-
-fn bench_tags_moderate(c: &mut Criterion) {
-    bench_tag_category(c, TagCategory::Moderate, "moderate");
-}
-
-fn bench_tags_many(c: &mut Criterion) {
-    bench_tag_category(c, TagCategory::Many, "many");
-}
-
-fn bench_tags_massive(c: &mut Criterion) {
-    bench_tag_category(c, TagCategory::Massive, "massive");
-}
-
-criterion_group! {
-    name = size_benches;
-    config = common::auto_criterion();
-    targets = bench_size_tiny, bench_size_small, bench_size_medium, bench_size_large, bench_size_huge
-}
-
-criterion_group! {
-    name = tag_benches;
-    config = common::auto_criterion();
-    targets = bench_tags_none, bench_tags_few, bench_tags_moderate, bench_tags_many, bench_tags_massive
-}
-
+criterion_group! { name = size_benches; config = common::auto_criterion(); targets = size_tiny, size_small, size_medium, size_large, size_huge }
+criterion_group! { name = tag_benches; config = common::auto_criterion(); targets = tags_none, tags_few, tags_moderate, tags_many, tags_massive }
 criterion_main!(size_benches, tag_benches);

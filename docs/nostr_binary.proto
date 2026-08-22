@@ -34,12 +34,22 @@ message ProtoEventBinary {
 
 // Tag message representing a single tag
 message TagBinary {
-  // Array of string values representing the tag
+  // Legacy text-only representation retained for wire compatibility.
   repeated string values = 1;
+
+  // Binary-aware representation. Lowercase hexadecimal values may be
+  // represented as bytes, while arbitrary case-sensitive text remains text.
+  repeated TagValueBinary values_v2 = 2;
+}
+
+message TagValueBinary {
+  oneof value {
+    string text = 1;
+    bytes hex = 2;
+  }
 }
 
 // Batch of binary events
 message EventBatchBinary {
   repeated ProtoEventBinary events = 1;
 }
-

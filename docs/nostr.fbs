@@ -1,0 +1,31 @@
+// FlatBuffers profile for Nostr events.
+//
+// TagValue preserves arbitrary NIP-01 strings. Eligible lowercase hexadecimal
+// values use `hex`; all other values use `text`. Exactly one field is present.
+
+namespace Binostr;
+
+table TagValue {
+  text:string;
+  hex:[ubyte];
+}
+
+table Tag {
+  values:[TagValue];
+}
+
+table Event {
+  id:[ubyte] (required);
+  pubkey:[ubyte] (required);
+  created_at:long;
+  kind:ushort;
+  tags:[Tag];
+  content:string (required);
+  sig:[ubyte] (required);
+}
+
+table EventBatch {
+  events:[Event];
+}
+
+root_type Event;

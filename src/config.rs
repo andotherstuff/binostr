@@ -14,7 +14,7 @@ use serde::Deserialize;
 static CONFIG: OnceLock<Config> = OnceLock::new();
 
 /// Configuration structure matching binostr.toml
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub formats: FormatConfig,
@@ -34,6 +34,33 @@ pub struct FormatConfig {
 
     #[serde(default = "default_true")]
     pub cbor_intkey: bool,
+
+    #[serde(default = "default_true")]
+    pub msgpack: bool,
+
+    #[serde(default = "default_true")]
+    pub flatbuffers: bool,
+
+    #[serde(default = "default_true")]
+    pub flexbuffers: bool,
+
+    #[serde(default = "default_true")]
+    pub avro: bool,
+
+    #[serde(default = "default_true")]
+    pub bson: bool,
+
+    #[serde(default = "default_true")]
+    pub thrift_compact: bool,
+
+    #[serde(default = "default_true")]
+    pub beve: bool,
+
+    #[serde(default = "default_true")]
+    pub bincode: bool,
+
+    #[serde(default = "default_true")]
+    pub postcard: bool,
 
     #[serde(default = "default_true")]
     pub proto_string: bool,
@@ -65,20 +92,21 @@ impl Default for FormatConfig {
             cbor_schemaless: true,
             cbor_packed: true,
             cbor_intkey: true,
+            msgpack: true,
+            flatbuffers: true,
+            flexbuffers: true,
+            avro: true,
+            bson: true,
+            thrift_compact: true,
+            beve: true,
+            bincode: true,
+            postcard: true,
             proto_string: true,
             proto_binary: true,
             capnp: true,
             capnp_packed: true,
             dannypack: true,
             notepack: true,
-        }
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            formats: FormatConfig::default(),
         }
     }
 }
@@ -127,6 +155,15 @@ impl Config {
         map.insert("cbor_schemaless", self.formats.cbor_schemaless);
         map.insert("cbor_packed", self.formats.cbor_packed);
         map.insert("cbor_intkey", self.formats.cbor_intkey);
+        map.insert("msgpack", self.formats.msgpack);
+        map.insert("flatbuffers", self.formats.flatbuffers);
+        map.insert("flexbuffers", self.formats.flexbuffers);
+        map.insert("avro", self.formats.avro);
+        map.insert("bson", self.formats.bson);
+        map.insert("thrift_compact", self.formats.thrift_compact);
+        map.insert("beve", self.formats.beve);
+        map.insert("bincode", self.formats.bincode);
+        map.insert("postcard", self.formats.postcard);
         map.insert("proto_string", self.formats.proto_string);
         map.insert("proto_binary", self.formats.proto_binary);
         map.insert("capnp", self.formats.capnp);
@@ -150,6 +187,15 @@ pub fn is_format_enabled(name: &str) -> bool {
         "cbor_schemaless" | "cbor_schema" => config.formats.cbor_schemaless,
         "cbor_packed" => config.formats.cbor_packed,
         "cbor_intkey" => config.formats.cbor_intkey,
+        "msgpack" => config.formats.msgpack,
+        "flatbuffers" => config.formats.flatbuffers,
+        "flexbuffers" => config.formats.flexbuffers,
+        "avro" => config.formats.avro,
+        "bson" => config.formats.bson,
+        "thrift_compact" | "thrift" => config.formats.thrift_compact,
+        "beve" => config.formats.beve,
+        "bincode" => config.formats.bincode,
+        "postcard" => config.formats.postcard,
         "proto_string" | "proto_str" => config.formats.proto_string,
         "proto_binary" | "proto_bin" => config.formats.proto_binary,
         "capnp" => config.formats.capnp,
@@ -216,4 +262,3 @@ mod tests {
         assert!(config.formats.proto_binary);
     }
 }
-

@@ -3,6 +3,7 @@
 use binostr::stats::Format;
 use binostr::{config, EventSampler, NostrEvent};
 use criterion::Criterion;
+use sha2::{Digest, Sha256};
 use std::time::Duration;
 
 /// Default Criterion configuration for benchmarks.
@@ -55,10 +56,14 @@ pub fn publication_criterion() -> Criterion {
         .significance_level(0.05)
 }
 
-/// Select criterion config based on environment.
-/// Set `BINOSTR_FAST_BENCH=1` for fast development iterations.
+/// Select Criterion config based on environment.
+///
+/// `BINOSTR_PUBLICATION_BENCH=1` takes precedence over
+/// `BINOSTR_FAST_BENCH=1` if both are present.
 pub fn auto_criterion() -> Criterion {
-    if std::env::var("BINOSTR_FAST_BENCH").is_ok() {
+    if std::env::var("BINOSTR_PUBLICATION_BENCH").is_ok() {
+        publication_criterion()
+    } else if std::env::var("BINOSTR_FAST_BENCH").is_ok() {
         fast_criterion()
     } else {
         default_criterion()
@@ -109,10 +114,41 @@ macro_rules! bench_if_enabled {
 /// Default data directory
 pub const DATA_DIR: &str = "data";
 
+/// Stable default seed for publication-quality, reproducible samples.
+pub const DEFAULT_BENCH_SEED: u64 = 0x4249_4e4f_5354_5201;
+
+pub fn benchmark_seed() -> u64 {
+    std::env::var("BINOSTR_BENCH_SEED")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(DEFAULT_BENCH_SEED)
+}
+
+fn load_sampler() -> Result<EventSampler, binostr::loader::LoadError> {
+    EventSampler::from_directory_seeded(DATA_DIR, benchmark_seed())
+}
+
+fn corpus_fingerprint(events: &[NostrEvent]) -> String {
+    let mut hasher = Sha256::new();
+    for event in events {
+        hasher.update(event.id);
+    }
+    hex::encode(hasher.finalize())
+}
+
+fn report_sample(events: &[NostrEvent]) {
+    eprintln!(
+        "Benchmark sample: events={}, seed={}, id_sha256={}",
+        events.len(),
+        benchmark_seed(),
+        corpus_fingerprint(events)
+    );
+}
+
 /// Load a sample of events for benchmarking
 #[allow(dead_code)]
 pub fn load_sample(size: usize) -> Vec<NostrEvent> {
-    let mut sampler = match EventSampler::from_directory(DATA_DIR, size * 2) {
+    let mut sampler = match load_sampler() {
         Ok(s) => s,
         Err(e) => {
             eprintln!("Warning: Could not load events from {}: {}", DATA_DIR, e);
@@ -129,13 +165,15 @@ pub fn load_sample(size: usize) -> Vec<NostrEvent> {
         );
     }
 
-    sampler.random_sample(size).into_iter().cloned().collect()
+    let events: Vec<_> = sampler.random_sample(size).into_iter().cloned().collect();
+    report_sample(&events);
+    events
 }
 
 /// Load events filtered by kind
 #[allow(dead_code)]
 pub fn load_by_kind(kind: u16, size: usize) -> Vec<NostrEvent> {
-    let mut sampler = match EventSampler::from_directory(DATA_DIR, size * 10) {
+    let mut sampler = match load_sampler() {
         Ok(s) => s,
         Err(e) => {
             eprintln!("Warning: Could not load events: {}", e);
@@ -149,7 +187,9 @@ pub fn load_by_kind(kind: u16, size: usize) -> Vec<NostrEvent> {
         return generate_synthetic_events_kind(kind, size);
     }
 
-    events.into_iter().cloned().collect()
+    let events: Vec<_> = events.into_iter().cloned().collect();
+    report_sample(&events);
+    events
 }
 
 /// Generate synthetic events for testing when data files aren't available

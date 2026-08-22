@@ -44,7 +44,7 @@ fn main() {
         );
         println!("{}", "─".repeat(56));
 
-        for &format in Format::all() {
+        for format in Format::enabled() {
             // Individual serialization total
             let individual_total: usize = batch
                 .iter()
@@ -86,7 +86,7 @@ fn main() {
     );
     println!("{}", "─".repeat(52));
 
-    for &format in Format::all() {
+    for format in Format::enabled() {
         let individual_total: usize = batch
             .iter()
             .map(|e| binostr::stats::serialize(e, format).len())
@@ -114,7 +114,7 @@ fn main() {
     );
     println!("{}", "─".repeat(62));
 
-    for &format in &[Format::Json, Format::CborPacked, Format::ProtoBinary, Format::DannyPack, Format::Notepack] {
+    for format in Format::enabled() {
         let individual_total: usize = batch
             .iter()
             .map(|e| binostr::stats::serialize(e, format).len())

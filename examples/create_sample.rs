@@ -126,7 +126,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         *kinds.entry(event.kind).or_insert(0) += 1;
     }
     let mut kinds: Vec<_> = kinds.into_iter().collect();
-    kinds.sort_by(|a, b| b.1.cmp(&a.1));
+    kinds.sort_by_key(|item| std::cmp::Reverse(item.1));
 
     println!("\nKind distribution:");
     for (kind, count) in kinds.iter().take(15) {

@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "Benchmarking library for comparing binary serialization formats for Nostr events"
-repository = "https://github.com/your-username/binostr"
+repository = "https://github.com/andotherstuff/binostr"
+readme = "README.md"
+publish = false
+keywords = ["nostr", "serialization", "benchmark", "cbor", "messagepack"]
+categories = ["encoding", "development-tools::profiling"]
 
 [dependencies]
 # Core serialization
@@ -14,6 +18,23 @@ serde_bytes = "0.11"
 
 # CBOR
 ciborium = "0.2"
+
+# MessagePack
+rmp-serde = "1.3"
+
+# Additional standards-based candidates
+flatbuffers = "25.12.19"
+flexbuffers = "25.12.19"
+apache-avro = "0.22"
+bson = "3.1"
+thrift = { version = "0.24", default-features = false }
+
+# Emerging standard reference (not yet a broad-language SDK candidate)
+beve = "8.0"
+
+# Rust ecosystem references (not cross-language protocol candidates)
+bincode = { version = "2.0", features = ["serde"] }
+postcard = { version = "1.1", features = ["alloc"] }
 
 # Protocol Buffers
 prost = "0.13"
@@ -26,13 +47,15 @@ flate2 = "1.0"
 zstd = "0.13"
 
 # Notepack
-notepack = { path = "/Users/jeff/code/notepack" }
+notepack = { git = "https://github.com/erskingardner/notepack", rev = "95a78265d4df197df5bf818a65b201c72c136166" }
 
 # Utilities
 rand = "0.8"
 hex = "0.4"
 thiserror = "2.0"
 toml = "0.8"
+sha2 = "0.10"
+secp256k1 = "0.31"
 
 [build-dependencies]
 prost-build = "0.13"
@@ -40,6 +63,7 @@ capnpc = "0.20"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+stats_alloc = "0.1"
 
 [[bench]]
 name = "serialize"
@@ -63,4 +87,8 @@ harness = false
 
 [[bench]]
 name = "zero_copy"
+harness = false
+
+[[bench]]
+name = "validated"
 harness = false
